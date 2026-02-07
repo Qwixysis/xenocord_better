@@ -28,9 +28,6 @@
     <div id="chatBox"></div>
     <input id="chatInput" type="text" placeholder="Сообщение">
     <button onclick="sendMessage()">Отправить</button>
-    <br><br>
-    <input type="file" id="mediaInput" accept=".png,.jpg,.jpeg,.mp4,.mov">
-    <button onclick="sendMedia(currentChatUid)">Отправить фото/видео</button>
   </section>
 
   <!-- Модалка добавления друга -->
@@ -61,7 +58,7 @@
     </div>
   </div>
 
-  <!-- Профиль друга (только просмотр) -->
+  <!-- Профиль друга -->
   <div id="friendProfileModal" class="modal">
     <div class="modal-content">
       <span onclick="closeFriendProfileModal()" class="close">&times;</span>
@@ -140,6 +137,5 @@
   <!-- Подключение скриптов -->
   <script type="module" src="main.js"></script>
   <script type="module" src="profile.js"></script>
-  <script type="module" src="media.js"></script>
 </body>
 </html>
