@@ -15,7 +15,10 @@ window.register = async function() {
   const nick = document.getElementById("regNick").value.trim();
 
   try {
+    // Создаём пользователя в Firebase Auth
     const userCred = await createUserWithEmailAndPassword(auth, email, pass);
+
+    // Обновляем профиль (ник)
     await updateProfile(userCred.user, { displayName: nick });
 
     // Создаём документ в Firestore
