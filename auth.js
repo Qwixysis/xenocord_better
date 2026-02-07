@@ -12,6 +12,7 @@ import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10
 
 const db = getFirestore();
 
+// Регистрация
 window.register = async function() {
   const nick = document.getElementById("regNick").value.trim();
   const email = document.getElementById("regEmail").value.trim();
@@ -34,6 +35,7 @@ window.register = async function() {
     await setDoc(doc(db, "users", nick), {
       uid: userCred.user.uid,
       email: email,
+      nick: nick,
       friends: [],
       pending: [],
       requestsSent: []
@@ -45,6 +47,7 @@ window.register = async function() {
   }
 };
 
+// Логин
 window.login = async function() {
   const email = document.getElementById("logEmail").value.trim();
   const pass = document.getElementById("logPass").value;
@@ -60,6 +63,7 @@ window.login = async function() {
   }
 };
 
+// Редирект после входа
 onAuthStateChanged(auth, user => {
   if (user) {
     window.location.href = "main.html";
