@@ -13,7 +13,6 @@ onAuthStateChanged(auth, async user => {
   }
 });
 
-// --- Модальные окна ---
 window.openFriendModal = function() {
   document.getElementById("friendModal").style.display = "block";
 };
@@ -24,7 +23,6 @@ window.closeSuccessModal = function() {
   document.getElementById("successModal").style.display = "none";
 };
 
-// --- Отправка заявки ---
 window.sendFriendRequest = async function() {
   const nick = document.getElementById("friendNick").value;
   const errorEl = document.getElementById("friendError");
@@ -55,7 +53,6 @@ window.sendFriendRequest = async function() {
   document.getElementById("successModal").style.display = "block";
 };
 
-// --- Принятие заявки ---
 window.acceptRequest = async function(nick) {
   const currentUser = auth.currentUser.displayName;
 
@@ -72,7 +69,6 @@ window.acceptRequest = async function(nick) {
   loadFriends(currentUser);
 };
 
-// --- Загрузка друзей и заявок ---
 async function loadFriends(nick) {
   const userSnap = await getDoc(doc(db, "users", nick));
   if (userSnap.exists()) {
@@ -92,7 +88,6 @@ async function loadFriends(nick) {
   }
 }
 
-// --- Чат ---
 window.sendMessage = function() {
   const msg = document.getElementById("chatInput").value;
   if (msg) {
@@ -102,7 +97,6 @@ window.sendMessage = function() {
   }
 };
 
-// --- Выход ---
 window.logout = function() {
   signOut(auth).then(() => {
     window.location.href = "index.html";
