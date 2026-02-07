@@ -4,6 +4,7 @@ import { getFirestore, doc, getDoc, updateDoc, arrayUnion, arrayRemove } from "h
 
 const db = getFirestore();
 
+// Проверка авторизации
 onAuthStateChanged(auth, async user => {
   if (!user) {
     window.location.href = "index.html";
@@ -13,6 +14,16 @@ onAuthStateChanged(auth, async user => {
   }
 });
 
+// --- Модальное окно добавления друга ---
+window.openFriendModal = function() {
+  document.getElementById("friendModal").style.display = "block";
+};
+
+window.closeFriendModal = function() {
+  document.getElementById("friendModal").style.display = "none";
+};
+
+// --- Заявки в друзья ---
 window.sendFriendRequest = async function() {
   const friendUid = document.getElementById("friendUid").value.trim();
   const errorEl = document.getElementById("friendError");
@@ -39,6 +50,7 @@ window.sendFriendRequest = async function() {
   });
 
   document.getElementById("pendingList").innerHTML += `<li>${friendUid} (ожидание)</li>`;
+  closeFriendModal();
 };
 
 window.acceptRequest = async function(friendUid) {
@@ -76,6 +88,20 @@ async function loadFriends(uid) {
   }
 }
 
+// --- Чат ---
+window.sendMessage = function() {
+  const chatBox = document.getElementById("chatBox");
+  const chatInput = document.getElementById("chatInput");
+  const msg = chatInput.value.trim();
+
+  if (!msg) return;
+
+  const user = auth.currentUser;
+  chatBox.innerHTML += `<p><b>${user.displayName || user.email}:</b> ${msg}</p>`;
+  chatInput.value = "";
+};
+
+// --- Выход ---
 window.logout = function() {
   signOut(auth).then(() => {
     window.location.href = "index.html";
