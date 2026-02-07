@@ -12,7 +12,6 @@ import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10
 
 const db = getFirestore();
 
-// Регистрация
 window.register = async function() {
   const nick = document.getElementById("regNick").value.trim();
   const email = document.getElementById("regEmail").value.trim();
@@ -31,23 +30,23 @@ window.register = async function() {
     const userCred = await createUserWithEmailAndPassword(auth, email, pass);
     await updateProfile(userCred.user, { displayName: nick });
 
-    // создаём документ в Firestore с ключом = никнейм
-    await setDoc(doc(db, "users", nick), {
+    // создаём документ по UID
+    await setDoc(doc(db, "users", userCred.user.uid), {
       uid: userCred.user.uid,
       email: email,
       nick: nick,
+      photoURL: userCred.user.photoURL || null,
       friends: [],
       pending: [],
       requestsSent: []
     });
 
-    alert("Регистрация успешна, документ создан!");
+    alert("Регистрация успешна, профиль создан!");
   } catch (err) {
     alert(err.message);
   }
 };
 
-// Логин
 window.login = async function() {
   const email = document.getElementById("logEmail").value.trim();
   const pass = document.getElementById("logPass").value;
@@ -63,7 +62,6 @@ window.login = async function() {
   }
 };
 
-// Редирект после входа
 onAuthStateChanged(auth, user => {
   if (user) {
     window.location.href = "main.html";
