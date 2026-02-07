@@ -8,29 +8,19 @@ onAuthStateChanged(auth, async user => {
   if (!user) {
     window.location.href = "index.html";
   } else {
-    document.getElementById("welcome").textContent = `Привет, ${user.displayName || user.email}!`;
-    loadFriends(user.displayName);
+    document.getElementById("welcome").textContent = `Привет, ${user.displayName || user.email}! (UID: ${user.uid})`;
+    loadFriends(user.uid);
   }
 });
 
-window.openFriendModal = function() {
-  document.getElementById("friendModal").style.display = "block";
-};
-window.closeFriendModal = function() {
-  document.getElementById("friendModal").style.display = "none";
-};
-window.closeSuccessModal = function() {
-  document.getElementById("successModal").style.display = "none";
-};
-
 window.sendFriendRequest = async function() {
-  const nick = document.getElementById("friendNick").value;
+  const friendUid = document.getElementById("friendUid").value.trim();
   const errorEl = document.getElementById("friendError");
   errorEl.textContent = "";
 
-  if (!nick) return;
+  if (!friendUid) return;
 
-  const usersRef = doc(db, "users", nick);
+  const usersRef = doc(db, "users", friendUid);
   const userSnap = await getDoc(usersRef);
 
   if (!userSnap.exists()) {
@@ -40,37 +30,35 @@ window.sendFriendRequest = async function() {
 
   const currentUser = auth.currentUser;
 
-  await updateDoc(doc(db, "users", nick), {
-    pending: arrayUnion(currentUser.displayName)
+  await updateDoc(doc(db, "users", friendUid), {
+    pending: arrayUnion(currentUser.uid)
   });
 
-  await updateDoc(doc(db, "users", currentUser.displayName), {
-    requestsSent: arrayUnion(nick)
+  await updateDoc(doc(db, "users", currentUser.uid), {
+    requestsSent: arrayUnion(friendUid)
   });
 
-  document.getElementById("pendingList").innerHTML += `<li>${nick} (ожидание)</li>`;
-  closeFriendModal();
-  document.getElementById("successModal").style.display = "block";
+  document.getElementById("pendingList").innerHTML += `<li>${friendUid} (ожидание)</li>`;
 };
 
-window.acceptRequest = async function(nick) {
-  const currentUser = auth.currentUser.displayName;
+window.acceptRequest = async function(friendUid) {
+  const currentUid = auth.currentUser.uid;
 
-  await updateDoc(doc(db, "users", currentUser), {
-    friends: arrayUnion(nick),
-    pending: arrayRemove(nick)
+  await updateDoc(doc(db, "users", currentUid), {
+    friends: arrayUnion(friendUid),
+    pending: arrayRemove(friendUid)
   });
 
-  await updateDoc(doc(db, "users", nick), {
-    friends: arrayUnion(currentUser),
-    requestsSent: arrayRemove(currentUser)
+  await updateDoc(doc(db, "users", friendUid), {
+    friends: arrayUnion(currentUid),
+    requestsSent: arrayRemove(currentUid)
   });
 
-  loadFriends(currentUser);
+  loadFriends(currentUid);
 };
 
-async function loadFriends(nick) {
-  const userSnap = await getDoc(doc(db, "users", nick));
+async function loadFriends(uid) {
+  const userSnap = await getDoc(doc(db, "users", uid));
   if (userSnap.exists()) {
     const data = userSnap.data();
 
@@ -87,15 +75,6 @@ async function loadFriends(nick) {
     });
   }
 }
-
-window.sendMessage = function() {
-  const msg = document.getElementById("chatInput").value;
-  if (msg) {
-    const chatBox = document.getElementById("chatBox");
-    chatBox.innerHTML += `<p><b>${auth.currentUser.displayName}:</b> ${msg}</p>`;
-    document.getElementById("chatInput").value = "";
-  }
-};
 
 window.logout = function() {
   signOut(auth).then(() => {
