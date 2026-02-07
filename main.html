@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Xenocord - Главная</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="main.js"></script>
+</head>
+<body>
+  <h1>Главная страница Xenocord</h1>
+  <p id="welcome"></p>
+
+  <h2>Друзья</h2>
+  <button onclick="openFriendModal()">Добавить друга</button>
+  <div id="friendModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeFriendModal()">&times;</span>
+      <h3>Добавить друга</h3>
+      <input id="friendNick" type="text" placeholder="Никнейм">
+      <button onclick="sendFriendRequest()">Отправить заявку</button>
+      <p id="friendError" style="color:red;"></p>
+    </div>
+  </div>
+
+  <h3>Список друзей</h3>
+  <ul id="friendsList"></ul>
+
+  <h3>Ожидание</h3>
+  <ul id="pendingList"></ul>
+
+  <h2>Чат</h2>
+  <div id="chatBox"></div>
+  <input id="chatInput" type="text" placeholder="Сообщение">
+  <button onclick="sendMessage()">Отправить</button>
+
+  <button onclick="logout()">Выйти</button>
+</body>
+</html>

@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Xenocord - Вход</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="auth.js"></script>
+</head>
+<body>
+  <h1>Добро пожаловать в Xenocord</h1>
+
+  <h2>Регистрация</h2>
+  <input id="regNick" type="text" placeholder="Никнейм">
+  <input id="regEmail" type="email" placeholder="Email">
+  <input id="regPass" type="password" placeholder="Пароль">
+  <label><input type="checkbox" id="regRemember"> Запомнить меня</label>
+  <button onclick="register()">Зарегистрироваться</button>
+
+  <h2>Логин</h2>
+  <input id="logEmail" type="email" placeholder="Email">
+  <input id="logPass" type="password" placeholder="Пароль">
+  <label><input type="checkbox" id="logRemember"> Запомнить меня</label>
+  <button onclick="login()">Войти</button>
+</body>
+</html>
