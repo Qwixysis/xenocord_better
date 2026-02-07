@@ -6,6 +6,8 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const db = getFirestore();
+let currentChatUid = null; // выбранный друг для чата
+let unsubscribeChat = null; // отписка от предыдущего чата
 
 // --- Авторизация ---
 onAuthStateChanged(auth, async user => {
@@ -84,6 +86,7 @@ async function loadFriends(uid) {
         friendsList.innerHTML += `<li>
           <img src="${friendData.photoURL || 'default.png'}" width="30" height="30">
           ${friendData.nick} 
+          <button onclick="openChatWithFriend('${f}')">Чат</button>
           <button onclick="viewProfile('${f}')">Профиль</button>
         </li>`;
       }
@@ -106,51 +109,66 @@ async function loadFriends(uid) {
   }
 }
 
-// --- Просмотр профиля друга ---
+// --- Просмотр профиля друга (только просмотр) ---
 window.viewProfile = async function(uid) {
   const snap = await getDoc(doc(db, "users", uid));
   if (snap.exists()) {
     const data = snap.data();
-    const modal = document.getElementById("profileModal");
-    document.getElementById("profileUid").textContent = data.uid;
-    document.getElementById("profileEmail").textContent = data.email;
-    document.getElementById("profileNick").textContent = data.nick;
-    document.getElementById("profilePhoto").src = data.photoURL || "default.png";
-    modal.style.display = "block";
+    document.getElementById("friendProfileUid").textContent = data.uid;
+    document.getElementById("friendProfileEmail").textContent = data.email;
+    document.getElementById("friendProfileNick").textContent = data.nick;
+    document.getElementById("friendProfilePhoto").src = data.photoURL || "default.png";
+    document.getElementById("friendProfileModal").style.display = "block";
   }
 };
 
-// --- Чат (мессенджер) ---
+window.closeFriendProfileModal = function() {
+  document.getElementById("friendProfileModal").style.display = "none";
+};
+
+// --- Чат с другом ---
+window.openChatWithFriend = function(friendUid) {
+  currentChatUid = friendUid;
+  if (unsubscribeChat) unsubscribeChat(); // отписываемся от старого чата
+  subscribeToChat(friendUid);
+};
+
+async function sendMessageToFriend(friendUid, text) {
+  const user = auth.currentUser;
+  const chatId = [user.uid, friendUid].sort().join("_"); // уникальный ID чата
+
+  await addDoc(collection(db, "privateMessages", chatId, "messages"), {
+    senderUid: user.uid,
+    senderNick: user.displayName || user.email,
+    text: text,
+    timestamp: serverTimestamp()
+  });
+}
+
 window.sendMessage = async function() {
   const chatInput = document.getElementById("chatInput");
   const msg = chatInput.value.trim();
-  if (!msg) return;
-
-  const user = auth.currentUser;
-
-  // Сохраняем сообщение в Firestore
-  await addDoc(collection(db, "messages"), {
-    senderUid: user.uid,
-    senderNick: user.displayName || user.email,
-    text: msg,
-    timestamp: serverTimestamp()
-  });
-
+  if (!msg || !currentChatUid) return;
+  await sendMessageToFriend(currentChatUid, msg);
   chatInput.value = "";
 };
 
-// Подписка на сообщения (реальное время)
-const messagesRef = collection(db, "messages");
-const q = query(messagesRef, orderBy("timestamp"));
+function subscribeToChat(friendUid) {
+  const user = auth.currentUser;
+  const chatId = [user.uid, friendUid].sort().join("_");
 
-onSnapshot(q, (snapshot) => {
-  const chatBox = document.getElementById("chatBox");
-  chatBox.innerHTML = "";
-  snapshot.forEach(doc => {
-    const data = doc.data();
-    chatBox.innerHTML += `<p><b>${data.senderNick}:</b> ${data.text}</p>`;
+  const messagesRef = collection(db, "privateMessages", chatId, "messages");
+  const q = query(messagesRef, orderBy("timestamp"));
+
+  unsubscribeChat = onSnapshot(q, (snapshot) => {
+    const chatBox = document.getElementById("chatBox");
+    chatBox.innerHTML = "";
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      chatBox.innerHTML += `<p><b>${data.senderNick}:</b> ${data.text}</p>`;
+    });
   });
-});
+}
 
 // --- Выход ---
 window.logout = function() {
