@@ -97,6 +97,7 @@ window.sendMessage = async function() {
 
   const user = auth.currentUser;
 
+  // Сохраняем сообщение в Firestore
   await addDoc(collection(db, "messages"), {
     senderUid: user.uid,
     senderNick: user.displayName || user.email,
@@ -107,7 +108,7 @@ window.sendMessage = async function() {
   chatInput.value = "";
 };
 
-// Подписка на сообщения
+// Подписка на сообщения (реальное время)
 const messagesRef = collection(db, "messages");
 const q = query(messagesRef, orderBy("timestamp"));
 
