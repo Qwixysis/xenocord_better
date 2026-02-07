@@ -1,14 +1,11 @@
 import { auth } from "./firebase.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { 
-  getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion, arrayRemove,
+  getFirestore, doc, getDoc, updateDoc, arrayUnion, arrayRemove,
   collection, addDoc, serverTimestamp, onSnapshot, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } 
-  from "https://www.gstatic.com/firebasejs/10.8.0/firebase-storage.js";
 
 const db = getFirestore();
-const storage = getStorage();
 let currentChatUid = null;
 let unsubscribeChat = null;
 
@@ -129,7 +126,7 @@ window.closeFriendProfileModal = function() {
   document.getElementById("friendProfileModal").style.display = "none";
 };
 
-// --- Чат ---
+// --- Чат (только текст) ---
 window.openChatWithFriend = function(friendUid) {
   currentChatUid = friendUid;
   if (unsubscribeChat) unsubscribeChat();
@@ -156,69 +153,6 @@ window.sendMessage = async function() {
   chatInput.value = "";
 };
 
-// --- Отправка медиа ---
-window.sendMedia = async function() {
-  const fileInput = document.getElementById("mediaInput");
-  if (fileInput.files.length === 0) return;
-
-  const file = fileInput.files[0];
-  const user = auth.currentUser;
-  const friendUid = currentChatUid;
-  if (!friendUid) {
-    alert("Сначала выбери друга для чата!");
-    return;
-  }
-
-  if (file.size > 5 * 1024 * 1024) {
-    alert("Файл слишком большой! Макс 5 MB.");
-    return;
-  }
-
-  const isImage = file.type.startsWith("image/");
-  const isVideo = file.type.startsWith("video/");
-  if (!isImage && !isVideo) {
-    alert("Можно отправлять только фото (.png/.jpg) или видео (.mp4/.mov).");
-    return;
-  }
-
-  const today = new Date().toISOString().split("T")[0];
-  const limitRef = doc(db, "dailyLimits", user.uid + "_" + today);
-  let limits = { photos: 0, videos: 0 };
-
-  const snap = await getDoc(limitRef);
-  if (snap.exists()) limits = snap.data();
-
-  if (isImage && limits.photos >= 10) {
-    alert("Лимит фото на сегодня исчерпан (10 шт).");
-    return;
-  }
-  if (isVideo && limits.videos >= 3) {
-    alert("Лимит видео на сегодня исчерпан (3 шт).");
-    return;
-  }
-
-  const storageRef = ref(storage, `media/${user.uid}/${Date.now()}_${file.name}`);
-  await uploadBytes(storageRef, file);
-  const url = await getDownloadURL(storageRef);
-
-  const chatId = [user.uid, friendUid].sort().join("_");
-  await addDoc(collection(db, "privateMessages", chatId, "messages"), {
-    senderUid: user.uid,
-    senderNick: user.displayName || user.email,
-    mediaUrl: url,
-    mediaType: isImage ? "image" : "video",
-    timestamp: serverTimestamp()
-  });
-
-  await setDoc(limitRef, {
-    photos: isImage ? limits.photos + 1 : limits.photos,
-    videos: isVideo ? limits.videos + 1 : limits.videos
-  });
-
-  fileInput.value = "";
-};
-
-// --- Подписка на чат ---
 function subscribeToChat(friendUid) {
   const user = auth.currentUser;
   const chatId = [user.uid, friendUid].sort().join("_");
@@ -233,8 +167,14 @@ function subscribeToChat(friendUid) {
       const data = doc.data();
       if (data.text) {
         chatBox.innerHTML += `<p><b>${data.senderNick}:</b> ${data.text}</p>`;
-      } else if (data.mediaUrl) {
-        if (data.mediaType === "image") {
-          chatBox.innerHTML += `<p><b>${data.senderNick}:</b><br><img src="${data.mediaUrl}" width="200"></p>`;
-        } else if (data.mediaType === "video") {
-          chatBox.innerHTML += `<p
+      }
+    });
+  });
+}
+
+// --- Выход ---
+window.logout = function() {
+  signOut(auth).then(() => {
+    window.location.href = "index.html";
+  });
+};
