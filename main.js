@@ -1,29 +1,31 @@
 import { auth } from "./firebase.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { 
+  getFirestore, doc, getDoc, updateDoc, arrayUnion, arrayRemove,
+  collection, addDoc, serverTimestamp, onSnapshot, query, orderBy
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const db = getFirestore();
 
-// Проверка авторизации
+// --- Авторизация ---
 onAuthStateChanged(auth, async user => {
   if (!user) {
     window.location.href = "index.html";
   } else {
-    document.getElementById("welcome").textContent = `Привет, ${user.displayName || user.email}! (UID: ${user.uid})`;
+    document.getElementById("welcome").textContent = 
+      `Привет, ${user.displayName || user.email}! (UID: ${user.uid})`;
     loadFriends(user.uid);
   }
 });
 
-// --- Модальное окно добавления друга ---
+// --- Друзья ---
 window.openFriendModal = function() {
   document.getElementById("friendModal").style.display = "block";
 };
-
 window.closeFriendModal = function() {
   document.getElementById("friendModal").style.display = "none";
 };
 
-// --- Заявки в друзья ---
 window.sendFriendRequest = async function() {
   const friendUid = document.getElementById("friendUid").value.trim();
   const errorEl = document.getElementById("friendError");
@@ -49,7 +51,6 @@ window.sendFriendRequest = async function() {
     requestsSent: arrayUnion(friendUid)
   });
 
-  document.getElementById("pendingList").innerHTML += `<li>${friendUid} (ожидание)</li>`;
   closeFriendModal();
 };
 
@@ -88,18 +89,36 @@ async function loadFriends(uid) {
   }
 }
 
-// --- Чат ---
-window.sendMessage = function() {
-  const chatBox = document.getElementById("chatBox");
+// --- Чат (мессенджер) ---
+window.sendMessage = async function() {
   const chatInput = document.getElementById("chatInput");
   const msg = chatInput.value.trim();
-
   if (!msg) return;
 
   const user = auth.currentUser;
-  chatBox.innerHTML += `<p><b>${user.displayName || user.email}:</b> ${msg}</p>`;
+
+  await addDoc(collection(db, "messages"), {
+    senderUid: user.uid,
+    senderNick: user.displayName || user.email,
+    text: msg,
+    timestamp: serverTimestamp()
+  });
+
   chatInput.value = "";
 };
+
+// Подписка на сообщения
+const messagesRef = collection(db, "messages");
+const q = query(messagesRef, orderBy("timestamp"));
+
+onSnapshot(q, (snapshot) => {
+  const chatBox = document.getElementById("chatBox");
+  chatBox.innerHTML = "";
+  snapshot.forEach(doc => {
+    const data = doc.data();
+    chatBox.innerHTML += `<p><b>${data.senderNick}:</b> ${data.text}</p>`;
+  });
+});
 
 // --- Выход ---
 window.logout = function() {
