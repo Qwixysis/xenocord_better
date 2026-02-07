@@ -14,7 +14,6 @@ onAuthStateChanged(auth, async user => {
   if (!user) {
     window.location.href = "index.html";
   } else {
-    // Приветствие без UID
     document.getElementById("welcome").textContent = 
       `Привет, ${user.displayName || user.email}!`;
     loadFriends(user.uid);
@@ -85,7 +84,9 @@ async function loadFriends(uid) {
       if (friendSnap.exists()) {
         const friendData = friendSnap.data();
         friendsList.innerHTML += `<li>
-          <img src="${friendData.photoURL || 'default.png'}" width="30" height="30">
+          <div style="width:30px;height:30px;border-radius:50%;background:#444;display:inline-flex;align-items:center;justify-content:center;color:#eee;font-size:14px;">
+            ${friendData.nick ? friendData.nick[0].toUpperCase() : "?"}
+          </div>
           ${friendData.nick} 
           <button onclick="openChatWithFriend('${f}')">Чат</button>
           <button onclick="viewFriendProfile('${f}')">Профиль</button>
@@ -100,7 +101,9 @@ async function loadFriends(uid) {
       if (pendingSnap.exists()) {
         const pendingData = pendingSnap.data();
         pendingList.innerHTML += `<li>
-          <img src="${pendingData.photoURL || 'default.png'}" width="30" height="30">
+          <div style="width:30px;height:30px;border-radius:50%;background:#444;display:inline-flex;align-items:center;justify-content:center;color:#eee;font-size:14px;">
+            ${pendingData.nick ? pendingData.nick[0].toUpperCase() : "?"}
+          </div>
           ${pendingData.nick} 
           <button onclick="acceptRequest('${p}')">Принять</button>
           <button onclick="viewFriendProfile('${p}')">Профиль</button>
@@ -117,7 +120,12 @@ window.viewFriendProfile = async function(uid) {
     const data = snap.data();
     document.getElementById("friendProfileEmail").textContent = data.email;
     document.getElementById("friendProfileNick").textContent = data.nick;
-    document.getElementById("friendProfilePhoto").src = data.photoURL || "default.png";
+    const photoEl = document.getElementById("friendProfilePhoto");
+    if (data.photoURL) {
+      photoEl.innerHTML = `<img src="${data.photoURL}" width="100" height="100" style="border-radius:50%;">`;
+    } else {
+      photoEl.innerHTML = `<div style="width:100px;height:100px;border-radius:50%;background:#444;display:flex;align-items:center;justify-content:center;color:#eee;font-size:32px;">?</div>`;
+    }
     document.getElementById("friendProfileModal").style.display = "block";
   }
 };
@@ -136,7 +144,12 @@ window.openProfileModal = async function() {
     const data = snap.data();
     document.getElementById("profileEmail").textContent = data.email;
     document.getElementById("profileNick").textContent = data.nick;
-    document.getElementById("profilePhoto").src = data.photoURL || "default.png";
+    const photoEl = document.getElementById("profilePhoto");
+    if (data.photoURL) {
+      photoEl.innerHTML = `<img src="${data.photoURL}" width="100" height="100" style="border-radius:50%;">`;
+    } else {
+      photoEl.innerHTML = `<div style="width:100px;height:100px;border-radius:50%;background:#444;display:flex;align-items:center;justify-content:center;color:#eee;font-size:32px;">?</div>`;
+    }
     document.getElementById("profileModal").style.display = "block";
   }
 };
@@ -172,7 +185,7 @@ window.sendMessage = async function() {
   chatInput.value = "";
 };
 
-// --- Подписка на чат (текст + медиа) ---
+// --- Подписка на чат ---
 function subscribeToChat(friendUid) {
   const user = auth.currentUser;
   const chatId = [user.uid, friendUid].sort().join("_");
