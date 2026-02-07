@@ -4,11 +4,7 @@ import {
   signInWithEmailAndPassword, 
   updateProfile 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { 
-  getFirestore, 
-  doc, 
-  setDoc 
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const db = getFirestore();
 
@@ -19,13 +15,10 @@ window.register = async function() {
   const nick = document.getElementById("regNick").value.trim();
 
   try {
-    // Создаём пользователя в Firebase Auth
     const userCred = await createUserWithEmailAndPassword(auth, email, pass);
-
-    // Обновляем профиль (ник)
     await updateProfile(userCred.user, { displayName: nick });
 
-    // --- ВАЖНО: создаём документ в Firestore ---
+    // Создаём документ в Firestore
     await setDoc(doc(db, "users", userCred.user.uid), {
       uid: userCred.user.uid,
       email: email,
