@@ -30,7 +30,7 @@ window.register = async function() {
     const userCred = await createUserWithEmailAndPassword(auth, email, pass);
     await updateProfile(userCred.user, { displayName: nick });
 
-    // создаём документ в Firestore
+    // создаём документ в Firestore с ключом = никнейм
     await setDoc(doc(db, "users", nick), {
       uid: userCred.user.uid,
       email: email,
@@ -38,6 +38,8 @@ window.register = async function() {
       pending: [],
       requestsSent: []
     });
+
+    alert("Регистрация успешна, документ создан!");
   } catch (err) {
     alert(err.message);
   }
