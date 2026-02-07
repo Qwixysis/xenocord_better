@@ -8,8 +8,10 @@ import {
   browserSessionPersistence, 
   updateProfile
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Регистрация
+const db = getFirestore();
+
 window.register = async function() {
   const nick = document.getElementById("regNick").value;
   const email = document.getElementById("regEmail").value;
@@ -20,13 +22,18 @@ window.register = async function() {
   await setPersistence(auth, persistence);
 
   createUserWithEmailAndPassword(auth, email, pass)
-    .then(userCred => {
-      updateProfile(userCred.user, { displayName: nick });
+    .then(async userCred => {
+      await updateProfile(userCred.user, { displayName: nick });
+      await setDoc(doc(db, "users", nick), {
+        email: email,
+        friends: [],
+        pending: [],
+        requestsSent: []
+      });
     })
     .catch(err => alert(err.message));
 };
 
-// Логин
 window.login = async function() {
   const email = document.getElementById("logEmail").value;
   const pass = document.getElementById("logPass").value;
@@ -39,7 +46,6 @@ window.login = async function() {
     .catch(err => alert(err.message));
 };
 
-// Редирект после входа
 onAuthStateChanged(auth, user => {
   if (user) {
     window.location.href = "main.html";
