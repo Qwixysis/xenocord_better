@@ -126,7 +126,7 @@ window.closeFriendProfileModal = function() {
   document.getElementById("friendProfileModal").style.display = "none";
 };
 
-// --- Чат (только текст) ---
+// --- Чат ---
 window.openChatWithFriend = function(friendUid) {
   currentChatUid = friendUid;
   if (unsubscribeChat) unsubscribeChat();
@@ -153,6 +153,7 @@ window.sendMessage = async function() {
   chatInput.value = "";
 };
 
+// --- Подписка на чат (текст + медиа) ---
 function subscribeToChat(friendUid) {
   const user = auth.currentUser;
   const chatId = [user.uid, friendUid].sort().join("_");
@@ -167,6 +168,14 @@ function subscribeToChat(friendUid) {
       const data = doc.data();
       if (data.text) {
         chatBox.innerHTML += `<p><b>${data.senderNick}:</b> ${data.text}</p>`;
+      } else if (data.mediaUrl) {
+        if (data.mediaType === "image") {
+          chatBox.innerHTML += `<p><b>${data.senderNick}:</b><br>
+            <img src="${data.mediaUrl}" width="200"></p>`;
+        } else if (data.mediaType === "video") {
+          chatBox.innerHTML += `<p><b>${data.senderNick}:</b><br>
+            <video src="${data.mediaUrl}" width="300" controls></video></p>`;
+        }
       }
     });
   });
