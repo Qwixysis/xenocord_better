@@ -6,8 +6,8 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const db = getFirestore();
-let currentChatUid = null; // выбранный друг для чата
-let unsubscribeChat = null; // отписка от предыдущего чата
+let currentChatUid = null;
+let unsubscribeChat = null;
 
 // --- Авторизация ---
 onAuthStateChanged(auth, async user => {
@@ -87,7 +87,7 @@ async function loadFriends(uid) {
           <img src="${friendData.photoURL || 'default.png'}" width="30" height="30">
           ${friendData.nick} 
           <button onclick="openChatWithFriend('${f}')">Чат</button>
-          <button onclick="viewProfile('${f}')">Профиль</button>
+          <button onclick="viewFriendProfile('${f}')">Профиль</button>
         </li>`;
       }
     });
@@ -102,7 +102,7 @@ async function loadFriends(uid) {
           <img src="${pendingData.photoURL || 'default.png'}" width="30" height="30">
           ${pendingData.nick} 
           <button onclick="acceptRequest('${p}')">Принять</button>
-          <button onclick="viewProfile('${p}')">Профиль</button>
+          <button onclick="viewFriendProfile('${p}')">Профиль</button>
         </li>`;
       }
     });
@@ -110,7 +110,7 @@ async function loadFriends(uid) {
 }
 
 // --- Просмотр профиля друга (только просмотр) ---
-window.viewProfile = async function(uid) {
+window.viewFriendProfile = async function(uid) {
   const snap = await getDoc(doc(db, "users", uid));
   if (snap.exists()) {
     const data = snap.data();
@@ -129,13 +129,13 @@ window.closeFriendProfileModal = function() {
 // --- Чат с другом ---
 window.openChatWithFriend = function(friendUid) {
   currentChatUid = friendUid;
-  if (unsubscribeChat) unsubscribeChat(); // отписываемся от старого чата
+  if (unsubscribeChat) unsubscribeChat();
   subscribeToChat(friendUid);
 };
 
 async function sendMessageToFriend(friendUid, text) {
   const user = auth.currentUser;
-  const chatId = [user.uid, friendUid].sort().join("_"); // уникальный ID чата
+  const chatId = [user.uid, friendUid].sort().join("_");
 
   await addDoc(collection(db, "privateMessages", chatId, "messages"), {
     senderUid: user.uid,
