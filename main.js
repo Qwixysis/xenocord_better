@@ -14,8 +14,9 @@ onAuthStateChanged(auth, async user => {
   if (!user) {
     window.location.href = "index.html";
   } else {
+    // Приветствие без UID
     document.getElementById("welcome").textContent = 
-      `Привет, ${user.displayName || user.email}! (UID: ${user.uid})`;
+      `Привет, ${user.displayName || user.email}!`;
     loadFriends(user.uid);
   }
 });
@@ -114,7 +115,6 @@ window.viewFriendProfile = async function(uid) {
   const snap = await getDoc(doc(db, "users", uid));
   if (snap.exists()) {
     const data = snap.data();
-    document.getElementById("friendProfileUid").textContent = data.uid;
     document.getElementById("friendProfileEmail").textContent = data.email;
     document.getElementById("friendProfileNick").textContent = data.nick;
     document.getElementById("friendProfilePhoto").src = data.photoURL || "default.png";
