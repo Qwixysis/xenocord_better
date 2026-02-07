@@ -126,6 +126,25 @@ window.closeFriendProfileModal = function() {
   document.getElementById("friendProfileModal").style.display = "none";
 };
 
+// --- Мой профиль ---
+window.openProfileModal = async function() {
+  const user = auth.currentUser;
+  if (!user) return;
+
+  const snap = await getDoc(doc(db, "users", user.uid));
+  if (snap.exists()) {
+    const data = snap.data();
+    document.getElementById("profileEmail").textContent = data.email;
+    document.getElementById("profileNick").textContent = data.nick;
+    document.getElementById("profilePhoto").src = data.photoURL || "default.png";
+    document.getElementById("profileModal").style.display = "block";
+  }
+};
+
+window.closeProfileModal = function() {
+  document.getElementById("profileModal").style.display = "none";
+};
+
 // --- Чат ---
 window.openChatWithFriend = function(friendUid) {
   currentChatUid = friendUid;
