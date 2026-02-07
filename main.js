@@ -1,6 +1,6 @@
 import { auth } from "./firebase.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getFirestore, doc, getDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const db = getFirestore();
 
@@ -9,11 +9,10 @@ onAuthStateChanged(auth, async user => {
     window.location.href = "index.html";
   } else {
     document.getElementById("welcome").textContent = `Привет, ${user.displayName || user.email}!`;
-    loadFriends(user.uid);
+    loadFriends(user.displayName);
   }
 });
 
-// --- Модальное окно ---
 window.openFriendModal = function() {
   document.getElementById("friendModal").style.display = "block";
 };
@@ -21,7 +20,6 @@ window.closeFriendModal = function() {
   document.getElementById("friendModal").style.display = "none";
 };
 
-// --- Добавление друга ---
 window.sendFriendRequest = async function() {
   const nick = document.getElementById("friendNick").value;
   const errorEl = document.getElementById("friendError");
@@ -29,7 +27,6 @@ window.sendFriendRequest = async function() {
 
   if (!nick) return;
 
-  // ищем пользователя по никнейму
   const usersRef = doc(db, "users", nick);
   const userSnap = await getDoc(usersRef);
 
@@ -39,6 +36,7 @@ window.sendFriendRequest = async function() {
   }
 
   const currentUser = auth.currentUser;
+
   await updateDoc(doc(db, "users", nick), {
     pending: arrayUnion(currentUser.displayName)
   });
@@ -51,9 +49,8 @@ window.sendFriendRequest = async function() {
   closeFriendModal();
 };
 
-// --- Загрузка друзей ---
-async function loadFriends(uid) {
-  const userSnap = await getDoc(doc(db, "users", auth.currentUser.displayName));
+async function loadFriends(nick) {
+  const userSnap = await getDoc(doc(db, "users", nick));
   if (userSnap.exists()) {
     const data = userSnap.data();
     const friendsList = document.getElementById("friendsList");
@@ -69,7 +66,6 @@ async function loadFriends(uid) {
   }
 }
 
-// --- Чат ---
 window.sendMessage = function() {
   const msg = document.getElementById("chatInput").value;
   if (msg) {
@@ -79,7 +75,6 @@ window.sendMessage = function() {
   }
 };
 
-// --- Выход ---
 window.logout = function() {
   signOut(auth).then(() => {
     window.location.href = "index.html";
