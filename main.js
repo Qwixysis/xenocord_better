@@ -1,82 +1,51 @@
-import { auth } from "./firebase.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Xenocord - Главная</title>
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="main.js"></script>
+</head>
+<body>
+  <header>
+    <h1>Xenocord</h1>
+    <p id="welcome"></p>
+    <button onclick="logout()">Выйти</button>
+  </header>
 
-const db = getFirestore();
+  <section>
+    <h2>Друзья</h2>
+    <button onclick="openFriendModal()">Добавить друга</button>
+    <div id="friendModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeFriendModal()">&times;</span>
+        <h3>Добавить друга</h3>
+        <input id="friendNick" type="text" placeholder="Никнейм">
+        <button onclick="sendFriendRequest()">Отправить заявку</button>
+        <p id="friendError" style="color:red;"></p>
+      </div>
+    </div>
 
-onAuthStateChanged(auth, async user => {
-  if (!user) {
-    window.location.href = "index.html";
-  } else {
-    document.getElementById("welcome").textContent = `Привет, ${user.displayName || user.email}!`;
-    loadFriends(user.displayName);
-  }
-});
+    <h3>Список друзей</h3>
+    <ul id="friendsList"></ul>
 
-window.openFriendModal = function() {
-  document.getElementById("friendModal").style.display = "block";
-};
-window.closeFriendModal = function() {
-  document.getElementById("friendModal").style.display = "none";
-};
+    <h3>Ожидание</h3>
+    <ul id="pendingList"></ul>
+  </section>
 
-window.sendFriendRequest = async function() {
-  const nick = document.getElementById("friendNick").value;
-  const errorEl = document.getElementById("friendError");
-  errorEl.textContent = "";
+  <section>
+    <h2>Чат</h2>
+    <div id="chatBox"></div>
+    <input id="chatInput" type="text" placeholder="Сообщение">
+    <button onclick="sendMessage()">Отправить</button>
+  </section>
 
-  if (!nick) return;
-
-  const usersRef = doc(db, "users", nick);
-  const userSnap = await getDoc(usersRef);
-
-  if (!userSnap.exists()) {
-    errorEl.textContent = "Такого пользователя нет!";
-    return;
-  }
-
-  const currentUser = auth.currentUser;
-
-  await updateDoc(doc(db, "users", nick), {
-    pending: arrayUnion(currentUser.displayName)
-  });
-
-  await updateDoc(doc(db, "users", currentUser.displayName), {
-    requestsSent: arrayUnion(nick)
-  });
-
-  document.getElementById("pendingList").innerHTML += `<li>${nick} (ожидание)</li>`;
-  closeFriendModal();
-};
-
-async function loadFriends(nick) {
-  const userSnap = await getDoc(doc(db, "users", nick));
-  if (userSnap.exists()) {
-    const data = userSnap.data();
-    const friendsList = document.getElementById("friendsList");
-    friendsList.innerHTML = "";
-    (data.friends || []).forEach(f => {
-      friendsList.innerHTML += `<li>${f}</li>`;
-    });
-    const pendingList = document.getElementById("pendingList");
-    pendingList.innerHTML = "";
-    (data.pending || []).forEach(p => {
-      pendingList.innerHTML += `<li>${p} (ожидание)</li>`;
-    });
-  }
-}
-
-window.sendMessage = function() {
-  const msg = document.getElementById("chatInput").value;
-  if (msg) {
-    const chatBox = document.getElementById("chatBox");
-    chatBox.innerHTML += `<p><b>${auth.currentUser.displayName}:</b> ${msg}</p>`;
-    document.getElementById("chatInput").value = "";
-  }
-};
-
-window.logout = function() {
-  signOut(auth).then(() => {
-    window.location.href = "index.html";
-  });
-};
+  <!-- Успешное сообщение -->
+  <div id="successModal">
+    <div class="modal-content">
+      <p>Заявка отправлена успешно!</p>
+      <button onclick="closeSuccessModal()">Ок</button>
+    </div>
+  </div>
+</body>
+</html>
