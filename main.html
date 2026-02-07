@@ -27,14 +27,9 @@
     <h2>Чат</h2>
     <div id="chatBox"></div>
     <div style="display:flex; align-items:center; gap:5px;">
-      <!-- Плюсик для выбора медиа -->
-      <button onclick="document.getElementById('mediaInput').click()">➕</button>
       <input id="chatInput" type="text" placeholder="Сообщение" style="flex:1;">
       <button onclick="sendMessage()">Отправить</button>
     </div>
-    <!-- Скрытый input для выбора фото/видео -->
-    <input type="file" id="mediaInput" accept=".png,.jpg,.jpeg,.mp4,.mov" style="display:none"
-           onchange="sendMedia(currentChatUid)">
   </section>
 
   <!-- Модалка добавления друга -->
@@ -60,7 +55,6 @@
       <h3>Редактировать</h3>
       <input id="newNick" type="text" placeholder="Новый ник">
       <input id="newPhoto" type="text" placeholder="URL аватарки">
-      <input type="file" id="newPhotoFile" accept=".png,.jpg,.jpeg">
       <button onclick="updateProfileData()">Сохранить</button>
     </div>
   </div>
@@ -144,6 +138,5 @@
   <!-- Подключение скриптов -->
   <script type="module" src="main.js"></script>
   <script type="module" src="profile.js"></script>
-  <script type="module" src="media.js"></script>
 </body>
 </html>
