@@ -41,11 +41,11 @@
     </div>
   </div>
 
-  <!-- Модалка профиля -->
+  <!-- Мой профиль -->
   <div id="profileModal" class="modal">
     <div class="modal-content">
       <span onclick="closeProfileModal()" class="close">&times;</span>
-      <h2>Профиль</h2>
+      <h2>Мой профиль</h2>
       <img id="profilePhoto" src="default.png" width="100" height="100">
       <p><b>UID:</b> <span id="profileUid"></span></p>
       <p><b>Email:</b> <span id="profileEmail"></span></p>
@@ -58,69 +58,17 @@
     </div>
   </div>
 
-  <!-- Стили для модалок -->
-  <style>
-    body {
-      background: #121212;
-      color: #eee;
-      font-family: Arial, sans-serif;
-    }
-    header {
-      background: #1f1f1f;
-      padding: 10px;
-    }
-    button {
-      background: #333;
-      color: #eee;
-      border: none;
-      padding: 5px 10px;
-      margin: 5px;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #555;
-    }
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1;
-      left: 0; top: 0;
-      width: 100%; height: 100%;
-      background-color: rgba(0,0,0,0.7);
-    }
-    .modal-content {
-      background: #1f1f1f;
-      margin: 10% auto;
-      padding: 20px;
-      width: 400px;
-      border-radius: 8px;
-    }
-    .close {
-      float: right;
-      font-size: 24px;
-      cursor: pointer;
-    }
-    #chatBox {
-      background: #1f1f1f;
-      padding: 10px;
-      height: 300px;
-      overflow-y: auto;
-      border-radius: 8px;
-    }
-    #friendsList, #pendingList {
-      list-style: none;
-      padding: 0;
-    }
-    #friendsList li, #pendingList li {
-      margin: 5px 0;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    #friendsList img, #pendingList img {
-      border-radius: 50%;
-    }
-  </style>
+  <!-- Профиль друга (только просмотр) -->
+  <div id="friendProfileModal" class="modal">
+    <div class="modal-content">
+      <span onclick="closeFriendProfileModal()" class="close">&times;</span>
+      <h2>Профиль друга</h2>
+      <img id="friendProfilePhoto" src="default.png" width="100" height="100">
+      <p><b>UID:</b> <span id="friendProfileUid"></span></p>
+      <p><b>Email:</b> <span id="friendProfileEmail"></span></p>
+      <p><b>Ник:</b> <span id="friendProfileNick"></span></p>
+    </div>
+  </div>
 
   <script type="module" src="main.js"></script>
   <script type="module" src="profile.js"></script>
