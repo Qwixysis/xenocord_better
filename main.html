@@ -2,39 +2,26 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Xenocord - Главная</title>
+  <title>Xenocord</title>
   <link rel="stylesheet" href="style.css">
-  <script type="module" src="main.js"></script>
-  <script type="module" src="profile.js"></script>
 </head>
 <body>
   <header>
     <h1>Xenocord</h1>
     <p id="welcome"></p>
-    <button onclick="openProfileModal()">Профиль</button>
     <button onclick="logout()">Выйти</button>
   </header>
 
+  <!-- Друзья -->
   <section>
     <h2>Друзья</h2>
-    <button onclick="openFriendModal()">Добавить друга</button>
-    <div id="friendModal" class="modal">
-      <div class="modal-content">
-        <span class="close" onclick="closeFriendModal()">&times;</span>
-        <h3>Добавить друга</h3>
-        <input id="friendUid" type="text" placeholder="UID друга">
-        <button onclick="sendFriendRequest()">Отправить заявку</button>
-        <p id="friendError" style="color:red;"></p>
-      </div>
-    </div>
-
-    <h3>Список друзей</h3>
     <ul id="friendsList"></ul>
-
-    <h3>Ожидание</h3>
+    <h3>Заявки</h3>
     <ul id="pendingList"></ul>
+    <button onclick="openFriendModal()">Добавить друга</button>
   </section>
 
+  <!-- Чат -->
   <section>
     <h2>Чат</h2>
     <div id="chatBox"></div>
@@ -42,21 +29,35 @@
     <button onclick="sendMessage()">Отправить</button>
   </section>
 
-  <!-- Модальное окно профиля -->
+  <!-- Модалка добавления друга -->
+  <div id="friendModal" class="modal">
+    <div class="modal-content">
+      <span onclick="closeFriendModal()" class="close">&times;</span>
+      <h2>Добавить друга</h2>
+      <input id="friendUid" type="text" placeholder="UID друга">
+      <p id="friendError" style="color:red"></p>
+      <button onclick="sendFriendRequest()">Отправить заявку</button>
+    </div>
+  </div>
+
+  <!-- Модалка профиля -->
   <div id="profileModal" class="modal">
     <div class="modal-content">
-      <span class="close" onclick="closeProfileModal()">&times;</span>
-      <h2>Мой профиль</h2>
+      <span onclick="closeProfileModal()" class="close">&times;</span>
+      <h2>Профиль</h2>
+      <img id="profilePhoto" src="default.png" width="100" height="100">
       <p><b>UID:</b> <span id="profileUid"></span></p>
       <p><b>Email:</b> <span id="profileEmail"></span></p>
       <p><b>Ник:</b> <span id="profileNick"></span></p>
-      <img id="profilePhoto" src="" alt="Фото профиля" style="width:100px;height:100px;border-radius:50%;">
-
       <h3>Редактировать</h3>
       <input id="newNick" type="text" placeholder="Новый ник">
-      <input id="newPhoto" type="text" placeholder="URL фото">
-      <button onclick="updateProfileData()">Сохранить изменения</button>
+      <input id="newPhoto" type="text" placeholder="URL аватарки">
+      <input type="file" id="newPhotoFile" accept=".png,.jpg,.jpeg">
+      <button onclick="updateProfileData()">Сохранить</button>
     </div>
   </div>
+
+  <script type="module" src="main.js"></script>
+  <script type="module" src="profile.js"></script>
 </body>
 </html>
