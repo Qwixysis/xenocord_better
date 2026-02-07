@@ -13,10 +13,15 @@ import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10
 const db = getFirestore();
 
 window.register = async function() {
-  const nick = document.getElementById("regNick").value;
-  const email = document.getElementById("regEmail").value;
+  const nick = document.getElementById("regNick").value.trim();
+  const email = document.getElementById("regEmail").value.trim();
   const pass = document.getElementById("regPass").value;
   const remember = document.getElementById("regRemember").checked;
+
+  if (!nick) {
+    alert("Введите никнейм!");
+    return;
+  }
 
   try {
     const persistence = remember ? browserLocalPersistence : browserSessionPersistence;
@@ -25,7 +30,9 @@ window.register = async function() {
     const userCred = await createUserWithEmailAndPassword(auth, email, pass);
     await updateProfile(userCred.user, { displayName: nick });
 
+    // создаём документ в Firestore
     await setDoc(doc(db, "users", nick), {
+      uid: userCred.user.uid,
       email: email,
       friends: [],
       pending: [],
@@ -37,7 +44,7 @@ window.register = async function() {
 };
 
 window.login = async function() {
-  const email = document.getElementById("logEmail").value;
+  const email = document.getElementById("logEmail").value.trim();
   const pass = document.getElementById("logPass").value;
   const remember = document.getElementById("logRemember").checked;
 
