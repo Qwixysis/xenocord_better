@@ -9,23 +9,24 @@
     --danger: #da373c;
 }
 
-/* АНИМАЦИЯ ТОЛЬКО ПРИ ПОЯВЛЕНИИ */
-@keyframes msgSlide {
+/* Эффект вылета сообщения */
+@keyframes messageIn {
     0% { opacity: 0; transform: translateY(20px) scale(0.9); }
     100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
+/* Эффект появления модалки */
 @keyframes modalIn {
-    0% { opacity: 0; transform: scale(0.8) translateY(-20px); }
-    100% { opacity: 1; transform: scale(1) translateY(0); }
+    from { opacity: 0; transform: translateY(-30px) scale(0.9); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 body { background: var(--bg-dark); color: var(--text); height: 100vh; overflow: hidden; }
 .app-container { display: flex; height: 100vh; }
 
 /* САЙДБАР */
-.sidebar { width: 280px; background: var(--bg-sidebar); display: flex; flex-direction: column; border-right: 1px solid #111; }
-.user-card { padding: 20px; background: var(--bg-card); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1a1a1c; }
+.sidebar { width: 280px; background: var(--bg-sidebar); display: flex; flex-direction: column; border-right: 1px solid #1a1a1c; }
+.user-card { padding: 20px; background: var(--bg-card); display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
 .sidebar-content { flex: 1; padding: 10px; overflow-y: auto; }
 .label { font-size: 11px; font-weight: 800; color: var(--text-muted); margin: 15px 8px 5px; text-transform: uppercase; }
 
@@ -33,11 +34,11 @@ li { padding: 10px; margin: 4px 0; border-radius: 8px; cursor: pointer; display:
 li:hover { background: rgba(255,255,255,0.05); }
 
 .sidebar-footer { padding: 15px; background: #232428; display: flex; flex-direction: column; gap: 8px; }
-.uid-section { background: var(--bg-dark); padding: 10px; border-radius: 12px; border: 1px dashed #4e5058; text-align: center; cursor: pointer; font-size: 11px; }
+.uid-section { background: var(--bg-dark); padding: 10px; border-radius: 12px; border: 1px dashed #4e5058; text-align: center; cursor: pointer; }
 
 /* ЧАТ */
 .chat-main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: #313338; }
-#chatHeader { height: 70px; padding: 0 25px; background: var(--bg-sidebar); display: flex; flex-direction: column; justify-content: center; border-bottom: 1px solid #1a1a1c; }
+#chatHeader { height: 70px; padding: 0 25px; background: var(--bg-sidebar); display: flex; flex-direction: column; justify-content: center; border-bottom: 1px solid #111; }
 #typingIndicator { font-size: 12px; color: var(--accent); height: 16px; font-weight: bold; }
 
 #chatBox { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
@@ -47,18 +48,17 @@ li:hover { background: rgba(255,255,255,0.05); }
     position: relative; padding: 10px 14px; border-radius: 16px; background: #383a40;
     max-width: 75%; width: fit-content; align-self: flex-start;
     word-break: break-word; line-height: 1.4;
+    /* Анимация для КАЖДОГО нового сообщения */
+    animation: messageIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
 }
 .msg.my { background: var(--accent); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
-
-/* КЛАСС ДЛЯ АНИМАЦИИ */
-.just-sent { animation: msgSlide 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.2) forwards; }
 
 .msg-footer { font-size: 10px; color: rgba(255,255,255,0.4); margin-top: 5px; }
 .msg-actions { position: absolute; top: -12px; right: 0; display: none; gap: 5px; }
 .msg:hover .msg-actions { display: flex; }
 .msg-actions button { padding: 4px 8px; border-radius: 6px; background: #111; color: white; border: 1px solid #444; cursor: pointer; font-size: 10px; }
 
-.chat-input-row { padding: 20px; display: flex; gap: 12px; background: #313338; }
+.chat-input-row { padding: 20px; display: flex; gap: 12px; }
 #chatInput { flex: 1; background: #383a40; border: none; padding: 15px; border-radius: 12px; color: white; outline: none; }
 
 /* МОДАЛКИ */
@@ -72,7 +72,7 @@ li:hover { background: rgba(255,255,255,0.05); }
 .modal-content { 
     background: var(--bg-sidebar); padding: 30px; border-radius: 20px; 
     width: 90%; max-width: 400px; text-align: center;
-    animation: modalIn 0.3s ease-out forwards;
+    animation: modalIn 0.3s ease-out; /* Анимация при каждом открытии */
 }
 
 button { border: none; border-radius: 8px; padding: 12px 20px; cursor: pointer; font-weight: 700; transition: 0.2s; }
