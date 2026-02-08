@@ -8,8 +8,8 @@ import {
 const db = getFirestore();
 let currentChatUid = null;
 let unsubscribeChat = null;
+let lastMessageIds = new Set(); // Для отслеживания уже отрисованных сообщений
 
-// --- Инициализация ---
 onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = "index.html"; return; }
     document.getElementById("userUid").innerText = user.uid;
@@ -22,11 +22,7 @@ onAuthStateChanged(auth, async (user) => {
     });
 });
 
-// --- Работа с интерфейсом ---
 document.addEventListener('DOMContentLoaded', () => {
-    const chatInput = document.getElementById('chatInput');
-    
-    // Анимация открытия модалок
     const openModal = (id) => document.getElementById(id).classList.add('active');
     const closeModal = (id) => document.getElementById(id).classList.remove('active');
 
@@ -40,8 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.onclick = () => { closeModal('friendModal'); closeModal('profileModal'); };
     });
 
-    // Отправка Enter
-    chatInput?.addEventListener('keydown', (e) => {
+    document.getElementById('chatInput')?.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
     });
 
@@ -68,7 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 });
 
-// --- Функции логики ---
 async function renderFriends(data) {
     const fList = document.getElementById("friendsList");
     const pList = document.getElementById("pendingList");
@@ -78,30 +72,16 @@ async function renderFriends(data) {
     (data.friends || []).forEach(async (fUid) => {
         const fSnap = await getDoc(doc(db, "users", fUid));
         const li = document.createElement("li");
-        li.innerHTML = `
-            <span>${fSnap.data()?.nick || 'Друг'}</span>
-            <button class="del-btn" title="Удалить">✕</button>
-        `;
-        
-        // Клик по другу - открыть чат
-        li.onclick = () => {
-            openChat(fUid, fSnap.data()?.nick);
-            document.getElementById('sidebar').classList.remove('active');
-        };
-
-        // Клик по крестику - удалить
-        li.querySelector('.del-btn').onclick = (e) => {
-            e.stopPropagation();
-            if(confirm("Удалить из друзей?")) removeFriend(fUid);
-        };
-
+        li.innerHTML = `<span>${fSnap.data()?.nick || 'Друг'}</span><button class="del-btn">✕</button>`;
+        li.onclick = () => { openChat(fUid, fSnap.data()?.nick); document.getElementById('sidebar').classList.remove('active'); };
+        li.querySelector('.del-btn').onclick = (e) => { e.stopPropagation(); if(confirm("Удалить из друзей?")) removeFriend(fUid); };
         fList.appendChild(li);
     });
 
     (data.pending || []).forEach(async (pUid) => {
         const pSnap = await getDoc(doc(db, "users", pUid));
         const li = document.createElement("li");
-        li.innerHTML = `<span>${pSnap.data()?.nick}</span> <button class="mini-ok" style="background:var(--accent);color:white;padding:2px 8px;border-radius:4px;font-size:10px;">OK</button>`;
+        li.innerHTML = `<span>${pSnap.data()?.nick}</span> <button class="mini-ok">OK</button>`;
         li.querySelector('button').onclick = (e) => { e.stopPropagation(); acceptFriend(pUid); };
         pList.appendChild(li);
     });
@@ -114,19 +94,37 @@ async function removeFriend(fUid) {
 }
 
 async function openChat(fUid, nick) {
+    if (currentChatUid === fUid) return; // Не переоткрывать тот же чат
     currentChatUid = fUid;
-    document.getElementById("chatTitle").innerText = nick;
-    const chatId = [auth.currentUser.uid, fUid].sort().join("_");
+    lastMessageIds.clear(); // Очищаем историю для нового чата
     
+    document.getElementById("chatTitle").innerText = nick;
+    document.getElementById("chatBox").innerHTML = ""; // Очищаем экран при смене чата
+    
+    const chatId = [auth.currentUser.uid, fUid].sort().join("_");
     if (unsubscribeChat) unsubscribeChat();
+    
     const q = query(collection(db, "privateMessages", chatId, "messages"), orderBy("timestamp"));
     
     unsubscribeChat = onSnapshot(q, (snap) => {
         const box = document.getElementById("chatBox");
-        box.innerHTML = snap.docs.map(d => {
-            const isMe = d.data().senderUid === auth.currentUser.uid;
-            return `<div class="msg ${isMe ? 'my' : ''}">${d.data().text}</div>`;
-        }).join("");
+        
+        snap.docChanges().forEach((change) => {
+            if (change.type === "added") {
+                const d = change.doc;
+                const msgId = d.id;
+                
+                // Проверяем, было ли сообщение уже отрисовано
+                if (!lastMessageIds.has(msgId)) {
+                    const isMe = d.data().senderUid === auth.currentUser.uid;
+                    const div = document.createElement("div");
+                    div.className = `msg ${isMe ? 'my' : ''} new-msg`; // Вешаем класс анимации только новым
+                    div.innerText = d.data().text;
+                    box.appendChild(div);
+                    lastMessageIds.add(msgId);
+                }
+            }
+        });
         box.scrollTop = box.scrollHeight;
     });
 }
