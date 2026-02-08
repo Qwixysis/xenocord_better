@@ -1,4 +1,4 @@
-/* --- Базовые настройки и сброс --- */
+/* --- Базовые настройки --- */
 * {
     margin: 0;
     padding: 0;
@@ -14,26 +14,28 @@
     --text: #dbdee1;
     --text-muted: #949ba4;
     --radius: 16px;
-    --danger: #da373c;
+    --online: #23a55a;
 }
 
 body {
     background-color: var(--bg-dark);
     color: var(--text);
     height: 100vh;
-    overflow: hidden;
+    width: 100vw;
+    overflow: hidden; /* Чтобы не было общей полосы прокрутки */
 }
 
-/* --- Главная сетка приложения --- */
 .app-container {
     display: flex;
     height: 100vh;
-    width: 100vw;
+    width: 100%;
+    overflow: hidden; /* Жестко ограничиваем экран */
 }
 
-/* --- Сайдбар (Левая панель) --- */
+/* --- САЙДБАР --- */
 .sidebar {
     width: 280px;
+    min-width: 280px;
     background-color: var(--bg-sidebar);
     display: flex;
     flex-direction: column;
@@ -46,7 +48,17 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #1e1f22;
+}
+
+/* Статус онлайн */
+.status-dot {
+    width: 10px;
+    height: 10px;
+    background: var(--online);
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+    box-shadow: 0 0 5px var(--online);
 }
 
 .sidebar-content {
@@ -63,26 +75,9 @@ body {
     text-transform: uppercase;
 }
 
-/* Списки друзей и запросов */
-ul { list-style: none; }
-li {
-    padding: 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    transition: 0.2s ease;
-}
-li:hover { background: rgba(255,255,255,0.05); }
-
-/* Подвал сайдбара и UID */
 .sidebar-footer {
     padding: 20px;
     background: var(--bg-card);
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
 }
 
 .uid-section {
@@ -92,23 +87,27 @@ li:hover { background: rgba(255,255,255,0.05); }
     border: 1px dashed #4e5058;
     text-align: center;
     cursor: pointer;
-    transition: 0.3s;
 }
-.uid-section:hover { border-color: var(--accent); background: #2a2d31; }
-.uid-section small { font-size: 10px; color: var(--text-muted); display: block; }
-.uid-section code { display: block; color: var(--accent); font-weight: bold; margin-top: 4px; font-size: 11px; }
 
-/* --- Основная зона (Чат) --- */
+.uid-section code {
+    display: block;
+    color: var(--accent);
+    font-weight: bold;
+    font-size: 10px;
+}
+
+/* --- ЗОНА ЧАТА (ТУТ РЕШЕНИЕ ПРОБЛЕМЫ) --- */
 .chat-main {
     flex: 1;
     display: flex;
     flex-direction: column;
+    min-width: 0; /* КРИТИЧЕСКИ ВАЖНО для flex-контейнеров, чтобы текст не распирал их */
+    background: var(--bg-dark);
 }
 
 #chatHeader {
     height: 60px;
     padding: 0 20px;
-    background: var(--bg-dark);
     border-bottom: 1px solid #28292c;
     display: flex;
     align-items: center;
@@ -117,126 +116,98 @@ li:hover { background: rgba(255,255,255,0.05); }
 
 #chatBox {
     flex: 1;
-    padding: 25px;
+    padding: 20px;
     overflow-y: auto;
+    overflow-x: hidden; /* Запрещаем горизонтальный скролл */
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 8px;
 }
 
-/* СООБЩЕНИЯ (Исправленный перенос текста) */
+/* СООБЩЕНИЯ (Исправлено на 100%) */
 .msg {
-    padding: 12px 16px;
-    border-radius: 18px;
+    padding: 10px 14px;
+    border-radius: 16px;
     background: #383a40;
-    max-width: 75%;
-    width: fit-content;
-    align-self: flex-start;
-    font-size: 14px;
-    line-height: 1.5;
+    color: var(--text);
     
-    /* Переносы */
-    white-space: pre-wrap;      /* Сохраняет твои переносы строк */
-    word-wrap: break-word;      /* Старые браузеры */
-    overflow-wrap: break-word;  /* Новые браузеры */
-    word-break: break-word;     /* Ломает даже очень длинные слова без пробелов */
+    max-width: 80%; /* Не дает сообщению уйти за экран */
+    width: auto;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-word; /* Ломает длинные строки */
+    white-space: pre-wrap;  /* Учитывает твои Enter'ы */
+    
+    align-self: flex-start;
+    line-height: 1.4;
 }
 
 .msg.my {
     background: var(--accent);
     color: white;
     align-self: flex-end;
-    border-bottom-right-radius: 4px;
+    border-bottom-right-radius: 2px;
 }
 
-/* Ввод сообщения */
+/* Индикатор печати */
+.typing-indicator {
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 5px 20px;
+    font-style: italic;
+    height: 20px;
+}
+
+/* --- ВВОД --- */
 .chat-input-row {
     padding: 20px;
     display: flex;
-    gap: 12px;
-    background: var(--bg-dark);
+    gap: 10px;
 }
 
 #chatInput {
     flex: 1;
     background: #383a40;
     border: none;
-    padding: 14px;
+    padding: 12px 16px;
     border-radius: 12px;
     color: white;
     outline: none;
 }
 
-/* --- МОДАЛЬНЫЕ ОКНА --- */
+/* --- МОДАЛКИ --- */
 .modal {
     display: none;
     position: fixed;
     top: 0; left: 0;
     width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(10px); /* Эффект стекла */
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(8px);
     z-index: 9999;
     align-items: center;
     justify-content: center;
 }
 
 .modal-content {
-    background: #313338;
+    background: var(--bg-sidebar);
     padding: 30px;
     border-radius: var(--radius);
-    width: 380px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    width: 360px;
     border: 1px solid #444;
 }
 
-.modal-content h3 { margin-bottom: 20px; text-align: center; }
-.modal-content input {
-    width: 100%;
-    padding: 14px;
-    background: var(--bg-dark);
-    border: 1px solid #4e5058;
-    border-radius: 10px;
-    color: white;
-    margin-bottom: 20px;
-    outline: none;
-}
-
-.modal-btns {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-/* --- Кнопки --- */
+/* --- КНОПКИ --- */
 button {
     border: none;
-    border-radius: 10px;
-    padding: 12px;
+    border-radius: 8px;
+    padding: 10px 16px;
     cursor: pointer;
-    font-weight: 700;
+    font-weight: 600;
     transition: 0.2s;
-    font-size: 14px;
-}
-
-#sendMsgBtn, #confirmSendRequest, #saveProfileBtn, #addFriendBtn {
-    background: var(--accent);
-    color: white;
 }
 
 button:hover { filter: brightness(1.2); }
-button.secondary { background: #4e5058; color: white; }
-button.danger { background: var(--danger); color: white; }
-.icon-btn { background: transparent; font-size: 20px; padding: 5px; }
-
-/* Мини-кнопка OK для принятия друзей */
-.mini-ok {
-    background: var(--accent);
-    color: white;
-    padding: 4px 10px;
-    font-size: 11px;
-}
-
-/* Скроллбар (опционально, для красоты) */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #1a1a1c; border-radius: 10px; }
+.danger { background: #da373c; color: white; }
+#sendMsgBtn, #addFriendBtn { background: var(--accent); color: white; }
+.secondary { background: #4e5058; color: white; }
+.icon-btn { background: transparent; font-size: 20px; }
