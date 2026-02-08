@@ -17,8 +17,8 @@ onAuthStateChanged(auth, async user => {
     document.getElementById("welcome").textContent = 
       `Привет, ${user.displayName || user.email}!`;
 
-    // UID внизу слева
-    document.getElementById("userUid").textContent = user.uid;
+    const uidEl = document.getElementById("userUid");
+    if (uidEl) uidEl.textContent = user.uid;
 
     loadFriends(user.uid);
   }
@@ -124,7 +124,8 @@ window.viewFriendProfile = async function(uid) {
     const data = snap.data();
     document.getElementById("friendProfileEmail").textContent = data.email;
     document.getElementById("friendProfileNick").textContent = data.nick;
-    document.getElementById("friendProfileUid").textContent = uid;
+    const uidEl = document.getElementById("friendProfileUid");
+    if (uidEl) uidEl.textContent = uid;
 
     const photoEl = document.getElementById("friendProfilePhoto");
     if (data.photoURL) {
@@ -151,7 +152,8 @@ window.openProfileModal = async function() {
     const data = snap.data();
     document.getElementById("profileEmail").textContent = data.email;
     document.getElementById("profileNick").textContent = data.nick;
-    document.getElementById("profileUid").textContent = user.uid;
+    const uidEl = document.getElementById("profileUid");
+    if (uidEl) uidEl.textContent = user.uid;
 
     const photoEl = document.getElementById("profilePhoto");
     if (data.photoURL) {
