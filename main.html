@@ -12,8 +12,8 @@
       padding: 0;
     }
     .container {
-      width: 600px;
-      margin: 50px auto;
+      width: 900px;
+      margin: 30px auto;
       background: #2c2c2c;
       padding: 20px;
       border-radius: 8px;
@@ -45,25 +45,52 @@
       height: 200px;
       overflow-y: auto;
     }
-    .message {
-      margin: 5px 0;
-      padding: 8px;
-      background: #4c4c4c;
-      border-radius: 4px;
+    h3 {
+      margin-top: 20px;
+      border-bottom: 1px solid #555;
+      padding-bottom: 5px;
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h2>Xenocord</h2>
+
+    <!-- Авторизация -->
     <div id="auth-section">
       <input type="email" id="email" placeholder="Email">
-      <input type="password" id="password" placeholder="Password">
+      <input type="password" id="password" placeholder="Пароль">
       <button onclick="loginUser()">Войти</button>
       <button onclick="logout()">Выйти</button>
+      <p id="welcome"></p>
+      <p id="userUid"></p>
     </div>
 
+    <!-- Друзья -->
+    <div id="friends-section">
+      <h3>Друзья</h3>
+      <button onclick="openFriendModal()">Добавить друга</button>
+      <ul id="friendsList"></ul>
+      <h4>Ожидающие запросы</h4>
+      <ul id="pendingList"></ul>
+    </div>
+
+    <!-- Настройки -->
+    <div id="settings-section">
+      <h3>Настройки профиля</h3>
+      <button onclick="openProfileModal()">Редактировать профиль</button>
+      <div id="profileModal" style="display:none;">
+        <p>Email: <span id="profileEmail"></span></p>
+        <p>Ник: <span id="profileNick"></span></p>
+        <p>UID: <span id="profileUid"></span></p>
+        <div id="profilePhoto"></div>
+        <button onclick="closeProfileModal()">Закрыть</button>
+      </div>
+    </div>
+
+    <!-- Чат -->
     <div id="chat-section">
+      <h3>Чат</h3>
       <input type="text" id="chatInput" placeholder="Сообщение">
       <button onclick="sendMessage()">Отправить</button>
       <div class="chat" id="chatBox"></div>
