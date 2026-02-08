@@ -12,26 +12,46 @@ let unsubscribeTyping = null;
 let typingTimeout = null;
 let shownMsgIds = new Set();
 
-// Делаем функции доступными для onclick в HTML
+// Глобальные функции управления окнами (чтобы работали из HTML)
 window.openModal = (id) => document.getElementById(id).classList.add('active');
 window.closeModal = (id) => document.getElementById(id).classList.remove('active');
 
+// 1. Мониторинг авторизации и данных пользователя
 onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = "index.html"; return; }
     document.getElementById("userUid").innerText = user.uid;
+    
     onSnapshot(doc(db, "users", user.uid), (snap) => {
         const data = snap.data();
         if (data) {
             document.getElementById("userNick").innerText = data.nick || "Jarvis";
             renderFriends(data);
+            renderPending(data);
         }
     });
 });
 
+// 2. Логика набора текста ("печатает...")
 async function updateTyping(isTyping) {
     if (!currentChatUid) return;
     const chatId = [auth.currentUser.uid, currentChatUid].sort().join("_");
     await setDoc(doc(db, "typing", chatId), { [auth.currentUser.uid]: isTyping }, { merge: true });
+}
+
+// 3. Работа с сообщениями
+async function sendMsg() {
+    const input = document.getElementById('chatInput');
+    const text = input.value.trim();
+    if (!text || !currentChatUid) return;
+
+    const chatId = [auth.currentUser.uid, currentChatUid].sort().join("_");
+    await addDoc(collection(db, "privateMessages", chatId, "messages"), {
+        senderUid: auth.currentUser.uid,
+        text: text,
+        timestamp: serverTimestamp()
+    });
+    input.value = "";
+    updateTyping(false);
 }
 
 async function deleteMsg(msgId) {
@@ -40,6 +60,7 @@ async function deleteMsg(msgId) {
     await deleteDoc(doc(db, "privateMessages", chatId, "messages", msgId));
 }
 
+// 4. Открытие чата
 async function openChat(fUid, nick) {
     if (currentChatUid === fUid) return;
     currentChatUid = fUid;
@@ -50,10 +71,12 @@ async function openChat(fUid, nick) {
 
     const chatId = [auth.currentUser.uid, fUid].sort().join("_");
 
+    // Подписка на сообщения
     if (unsubscribeChat) unsubscribeChat();
     const q = query(collection(db, "privateMessages", chatId, "messages"), orderBy("timestamp"));
     unsubscribeChat = onSnapshot(q, (snap) => {
         const dbIds = snap.docs.map(d => d.id);
+        // Удаляем из интерфейса, если удалено в базе
         Array.from(box.children).forEach(el => { if (!dbIds.includes(el.id)) el.remove(); });
 
         snap.docChanges().forEach(change => {
@@ -74,60 +97,16 @@ async function openChat(fUid, nick) {
         box.scrollTop = box.scrollHeight;
     });
 
+    // Подписка на статус печатания
     if (unsubscribeTyping) unsubscribeTyping();
     unsubscribeTyping = onSnapshot(doc(db, "typing", chatId), (snap) => {
         const data = snap.data();
-        document.getElementById("typingIndicator").innerText = (data && data[fUid]) ? `${nick} печатает...` : "";
+        const indicator = document.getElementById("typingIndicator");
+        indicator.innerText = (data && data[fUid]) ? `${nick} печатает...` : "";
     });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    const input = document.getElementById('chatInput');
-    input?.addEventListener('input', () => {
-        updateTyping(true);
-        clearTimeout(typingTimeout);
-        typingTimeout = setTimeout(() => updateTyping(false), 2000);
-    });
-
-    input?.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
-    });
-
-    document.getElementById('sendMsgBtn').onclick = sendMsg;
-    document.getElementById('addFriendBtn').onclick = () => window.openModal('friendModal');
-    document.getElementById('profileBtn').onclick = () => window.openModal('profileModal');
-    
-    document.getElementById('confirmSendRequest').onclick = async () => {
-        const uid = document.getElementById('friendUidInput').value.trim();
-        if (uid) {
-            await updateDoc(doc(db, "users", uid), { pending: arrayUnion(auth.currentUser.uid) });
-            alert("Запрос отправлен!");
-            window.closeModal('friendModal');
-        }
-    };
-
-    document.getElementById('saveProfileBtn').onclick = async () => {
-        const nick = document.getElementById('editNickInput').value.trim();
-        if (nick) {
-            await updateDoc(doc(db, "users", auth.currentUser.uid), { nick });
-            window.closeModal('profileModal');
-        }
-    };
-});
-
-async function sendMsg() {
-    const input = document.getElementById('chatInput');
-    if (!input.value.trim() || !currentChatUid) return;
-    const chatId = [auth.currentUser.uid, currentChatUid].sort().join("_");
-    await addDoc(collection(db, "privateMessages", chatId, "messages"), {
-        senderUid: auth.currentUser.uid,
-        text: input.value,
-        timestamp: serverTimestamp()
-    });
-    input.value = "";
-    updateTyping(false);
-}
-
+// 5. Друзья и Запросы
 async function renderFriends(data) {
     const list = document.getElementById("friendsList");
     list.innerHTML = "";
@@ -138,7 +117,7 @@ async function renderFriends(data) {
         li.onclick = () => openChat(fUid, fSnap.data()?.nick);
         li.querySelector('.del-friend-btn').onclick = (e) => {
             e.stopPropagation();
-            if(confirm("Удалить друга?")) {
+            if(confirm("Удалить из друзей?")) {
                 updateDoc(doc(db, "users", auth.currentUser.uid), { friends: arrayRemove(fUid) });
                 updateDoc(doc(db, "users", fUid), { friends: arrayRemove(auth.currentUser.uid) });
             }
@@ -146,3 +125,62 @@ async function renderFriends(data) {
         list.appendChild(li);
     }
 }
+
+async function renderPending(data) {
+    const list = document.getElementById("pendingList");
+    list.innerHTML = "";
+    for (const pUid of (data.pending || [])) {
+        const pSnap = await getDoc(doc(db, "users", pUid));
+        const li = document.createElement("li");
+        li.innerHTML = `<span>${pSnap.data()?.nick}</span><button class="mini-ok">OK</button>`;
+        li.querySelector('button').onclick = async () => {
+            await updateDoc(doc(db, "users", auth.currentUser.uid), { 
+                friends: arrayUnion(pUid), 
+                pending: arrayRemove(pUid) 
+            });
+            await updateDoc(doc(db, "users", pUid), { friends: arrayUnion(auth.currentUser.uid) });
+        };
+        list.appendChild(li);
+    }
+}
+
+// 6. Слушатели событий интерфейса
+document.addEventListener('DOMContentLoaded', () => {
+    const input = document.getElementById('chatInput');
+    
+    input?.addEventListener('input', () => {
+        updateTyping(true);
+        clearTimeout(typingTimeout);
+        typingTimeout = setTimeout(() => updateTyping(false), 2000);
+    });
+
+    input?.addEventListener('keydown', (e) => { 
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } 
+    });
+
+    document.getElementById('sendMsgBtn').onclick = sendMsg;
+    
+    document.getElementById('saveProfileBtn').onclick = async () => {
+        const nick = document.getElementById('editNickInput').value.trim();
+        if (nick) {
+            await updateDoc(doc(db, "users", auth.currentUser.uid), { nick });
+            window.closeModal('profileModal');
+        }
+    };
+
+    document.getElementById('confirmSendRequest').onclick = async () => {
+        const uid = document.getElementById('friendUidInput').value.trim();
+        if (uid && uid !== auth.currentUser.uid) {
+            await updateDoc(doc(db, "users", uid), { pending: arrayUnion(auth.currentUser.uid) });
+            alert("Запрос отправлен!");
+            window.closeModal('friendModal');
+        }
+    };
+
+    document.getElementById('copyUidBox').onclick = () => {
+        navigator.clipboard.writeText(document.getElementById('userUid').innerText);
+        alert("UID скопирован!");
+    };
+
+    document.getElementById('logoutBtn').onclick = () => signOut(auth);
+});
