@@ -1,195 +1,44 @@
 :root {
-    --bg-guilds: #1e1f22;
-    --bg-sidebar: #2b2d31;
-    --bg-chat: #313338;
-    --bg-user: #232428;
-    --bg-modifier-hover: rgba(78, 80, 88, 0.3);
-    --bg-modifier-selected: rgba(78, 80, 88, 0.6);
-    --accent: #5865f2;
-    --text-normal: #dbdee1;
+    --bg-darker: #1e1f22;
+    --bg-dark: #2b2d31;
+    --bg-main: #313338;
+    --bg-light: #383a40;
+    --text-main: #dbdee1;
     --text-muted: #949ba4;
-    --header-primary: #ffffff;
+    --brand: #5865f2;
+    --green: #23a559;
 }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'gg sans', 'Noto Sans', sans-serif;
-}
+body, html { margin: 0; padding: 0; height: 100vh; background: #000; font-family: 'gg sans', sans-serif; color: var(--text-main); overflow: hidden; }
+.app-container { display: flex; width: 100%; height: 100%; }
 
-body, html {
-    height: 100vh;
-    width: 100vw;
-    background-color: #000; /* Внешний фон */
-    overflow: hidden;
-}
+/* Колонки */
+.guilds-bar { width: 72px; background: var(--bg-darker); display: flex; flex-direction: column; align-items: center; padding: 12px 0; flex-shrink: 0; }
+.dm-sidebar { width: 240px; background: var(--bg-dark); display: flex; flex-direction: column; }
+.main-content { flex: 1; display: flex; flex-direction: column; background: var(--bg-main); }
 
-/* ГЛАВНЫЙ КОНТЕЙНЕР */
-.app-container {
-    display: flex;
-    width: 100%;
-    height: 100%;
-    background-color: var(--bg-guilds);
-}
+/* Навигация сверху */
+.top-nav { height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; box-shadow: 0 1px 0 rgba(0,0,0,0.2); }
+.nav-left { display: flex; align-items: center; gap: 8px; }
+.v-sep { width: 1px; height: 24px; background: var(--bg-light); margin: 0 8px; }
+.nav-btn { background: none; border: none; color: var(--text-main); padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 14px; }
+.nav-btn:hover { background: var(--bg-light); }
+.nav-btn.active { background: rgba(78, 80, 88, 0.6); color: #fff; }
+.nav-btn.add-btn { background: var(--green); color: #fff; font-weight: bold; }
 
-/* ЛЕВАЯ ПАНЕЛЬ СЕРВЕРОВ */
-.guilds-bar {
-    width: 72px;
-    padding: 12px 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
-}
+/* Тело */
+.content-body { display: flex; flex: 1; overflow: hidden; }
+.friends-column { flex: 1; padding: 16px; display: flex; flex-direction: column; }
+.active-now { width: 350px; border-left: 1px solid var(--bg-light); padding: 16px; }
 
-.guild-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background-color: var(--bg-chat);
-    color: var(--text-normal);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: border-radius 0.2s, background-color 0.2s;
-}
+/* Список друзей как на скрине */
+#friendsList li { padding: 8px; border-radius: 4px; display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 2px; }
+#friendsList li:hover { background: var(--bg-light); }
 
-.guild-icon:hover {
-    border-radius: 16px;
-    background-color: var(--accent);
-}
-
-/* САЙДБАР С ДРУЗЬЯМИ */
-.dm-sidebar {
-    width: 240px;
-    background-color: var(--bg-sidebar);
-    display: flex;
-    flex-direction: column;
-    border-top-left-radius: 8px; /* Небольшое скругление сверху */
-}
-
-.search-bar {
-    height: 48px;
-    padding: 0 10px;
-    display: flex;
-    align-items: center;
-    box-shadow: 0 1px 0 rgba(0,0,0,0.2);
-}
-
-.search-input {
-    width: 100%;
-    height: 28px;
-    background-color: var(--bg-guilds);
-    border: none;
-    border-radius: 4px;
-    color: var(--text-muted);
-    padding: 0 8px;
-    font-size: 14px;
-    text-align: left;
-}
-
-.scroller {
-    flex: 1;
-    padding: 12px 8px;
-    overflow-y: auto;
-}
-
-.scroller li {
-    list-style: none;
-    padding: 8px;
-    margin-bottom: 2px;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    color: var(--text-muted);
-    cursor: pointer;
-}
-
-.scroller li:hover {
-    background-color: var(--bg-modifier-hover);
-    color: var(--text-normal);
-}
-
-.scroller li.active {
-    background-color: var(--bg-modifier-selected);
-    color: var(--header-primary);
-}
-
-/* НИЖНЯЯ ПАНЕЛЬ С НИКОМ */
-.self-panel {
-    height: 52px;
-    background-color: var(--bg-user);
-    padding: 0 8px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-/* ОСНОВНОЕ ОКНО ЧАТА */
-.chat-wrapper {
-    flex: 1;
-    background-color: var(--bg-chat);
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-    margin-top: 0; 
-    /* Тот самый "Discord-Look": чат как бы лежит поверх */
-}
-
-.chat-header {
-    height: 48px;
-    padding: 0 16px;
-    display: flex;
-    align-items: center;
-    box-shadow: 0 1px 0 rgba(0,0,0,0.2);
-    z-index: 10;
-}
-
-.chat-messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-}
-
-/* ПОЛЕ ВВОДА */
-.chat-input-wrapper {
-    padding: 0 16px 24px;
-}
-
-.chat-input-area {
-    background-color: #383a40;
-    border-radius: 8px;
-    padding: 10px 16px;
-    display: flex;
-    align-items: center;
-}
-
-.chat-input-area input {
-    flex: 1;
-    background: transparent;
-    border: none;
-    color: var(--text-normal);
-    font-size: 16px;
-    outline: none;
-}
-
-/* МОДАЛЬНЫЕ ОКНА */
-.overlay {
-    position: fixed;
-    inset: 0;
-    background-color: rgba(0,0,0,0.85);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-}
-
-.overlay.active {
-    display: flex;
-}
+.self-panel { height: 52px; background: #232428; padding: 0 8px; display: flex; align-items: center; justify-content: space-between; }
+.user-block { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 4px; border-radius: 4px; }
+.user-block:hover { background: var(--bg-light); }
+.ava-wrap { position: relative; }
+.ava { width: 32px; height: 32px; background: var(--brand); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+.status { position: absolute; bottom: -2px; right: -2px; width: 12px; height: 12px; border: 3px solid #232428; border-radius: 50%; }
+.status.online { background: var(--green); }
