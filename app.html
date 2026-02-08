@@ -2,133 +2,106 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Xenocord</title>
+    <title>Xenocord Hybrid</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/gg-sans">
+    <link href="https://fonts.cdnfonts.com/css/gg-sans" rel="stylesheet">
 </head>
 <body>
 
-    <div class="app-container">
-        <nav class="guilds-bar">
-            <div class="guild-item active" title="Личные сообщения">
-                <svg width="28" height="20" viewBox="0 0 28 20" fill="white"><path d="M20.6644 20C20.6644 20 19.8003 18.9762 19.0822 18.0714C22.2226 17.1905 23.4212 15.2381 23.4212 15.2381C22.4315 15.881 21.5137 16.3333 20.6644 16.6429C19.4658 17.1429 18.3185 17.4762 17.2226 17.6667C15.0034 18.0476 12.9726 17.9762 11.2021 17.6667C9.91438 17.4524 8.64041 17.119 7.39041 16.6429C6.5411 16.3333 5.5137 15.8333 4.41781 15.2381C4.41781 15.2381 5.56507 17.119 8.58562 18.0238C7.86644 18.9286 6.98288 20 6.98288 20C1.98288 19.8333 0.0445206 16.619 0.0445206 16.619C0.0445206 12.0476 2.07192 8.33333 2.07192 8.33333C4.09932 6.80952 6.05137 6.85714 6.05137 6.85714L6.19521 7.02381C3.65411 7.78571 2.47945 8.88095 2.47945 8.88095C2.47945 8.88095 2.7911 8.71429 3.32192 8.47619C5.16781 7.66667 6.65753 7.33333 7.39041 7.21429C7.5411 7.19048 7.66781 7.16667 7.79452 7.16667C8.91438 7.02381 10.161 6.92857 11.4966 6.92857C13.2774 6.92857 15.2158 7.04762 17.1507 7.42857C18.6336 7.71429 20.2123 8.21429 21.8459 8.88095C21.8459 8.88095 20.7226 7.83333 18.2842 7.07143L18.476 6.85714C18.476 6.85714 20.4281 6.80952 22.4555 8.33333C22.4555 8.33333 24.4829 12.0476 24.4829 16.619C24.4829 16.619 22.5685 19.8333 17.5411 20L18.0685 19.3571C19.0274 19.6429 19.9863 19.881 20.6644 20ZM8.19521 11.4048C6.98288 11.4048 6.00342 12.4524 6.00342 13.7381C6.00342 15.0238 6.98288 16.0714 8.19521 16.0714C9.40753 16.0714 10.387 15.0238 10.387 13.7381C10.387 12.4524 9.42808 11.4048 8.19521 11.4048ZM16.3322 11.4048C15.1199 11.4048 14.1404 12.4524 14.1404 13.7381C14.1404 15.0238 15.1199 16.0714 16.3322 16.0714C17.5445 16.0714 18.524 15.0238 18.524 13.7381C18.524 12.4524 17.5651 11.4048 16.3322 11.4048Z"/></svg>
+    <div class="app-shell">
+        <aside class="side-navigation">
+            <div class="nav-top">
+                <div class="menu-burger"><span></span><span></span><span></span></div>
             </div>
-            <div class="guild-sep"></div>
-            <div class="guild-item add" onclick="window.openModal('addFriendModal')">+</div>
-        </nav>
-
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <button class="search-btn">Найти или начать беседу</button>
-            </div>
-            <div class="sidebar-scroll">
-                <div class="side-item active"><span>👥</span> Друзья</div>
-                <div class="side-item"><span>🏬</span> Магазин</div>
-                
-                <div class="side-section-header">ЛИЧНЫЕ СООБЩЕНИЯ <span class="plus" onclick="window.openModal('addFriendModal')">+</span></div>
-                <ul id="friendsList"></ul>
-
-                <div class="side-section-header">ЗАПРОСЫ (<span id="pendingCount">0</span>)</div>
-                <ul id="pendingList"></ul>
-            </div>
-
-            <footer class="user-footer">
-                <div class="user-clickable" onclick="window.openModal('settingsOverlay')">
-                    <div class="ava-wrapper">
-                        <div id="userAvatarMain" class="ava-circle">?</div>
-                        <div class="status-dot online"></div>
-                    </div>
-                    <div class="user-text-tags">
-                        <div id="userNick" class="username">Загрузка...</div>
-                        <div class="user-status-msg">В сети</div>
-                    </div>
+            <div class="guilds-wrapper">
+                <div class="g-item active" data-tooltip="Личные сообщения">
+                    <img src="https://cdn-icons-png.flaticon.com/512/9068/9068642.png" alt="DM">
                 </div>
-                <div class="user-icons">
-                    <button class="user-icon-btn" onclick="window.openModal('settingsOverlay')">⚙</button>
-                </div>
-            </footer>
+                <div class="g-sep"></div>
+                <div id="serversList">
+                    </div>
+                <div class="g-item add-btn" onclick="window.openModal('addFriendModal')">+</div>
+            </div>
         </aside>
 
+        <section class="contacts-panel">
+            <div class="panel-search">
+                <input type="text" placeholder="Поиск людей и чатов...">
+            </div>
+            <div class="contacts-scroller">
+                <div class="contact-category">ЛИЧНЫЕ ЧАТЫ</div>
+                <ul id="friendsList"></ul>
+            </div>
+            
+            <div class="profile-dock" onclick="window.openModal('settingsOverlay')">
+                <div class="p-dock-info">
+                    <div class="p-dock-ava">
+                        <div id="userAvatarMain">?</div>
+                        <div class="p-dock-status"></div>
+                    </div>
+                    <div class="p-dock-text">
+                        <span id="userNick">Загрузка...</span>
+                        <small>Настроить профиль</small>
+                    </div>
+                </div>
+                <div class="p-dock-ctrl">⚙</div>
+            </div>
+        </section>
+
         <main class="chat-viewport">
-            <header class="chat-top-nav">
-                <div class="chat-title-info">
-                    <span class="symbol">@</span>
-                    <h1 id="chatTitle">Выберите друга</h1>
+            <header class="chat-header">
+                <div class="header-user">
+                    <h2 id="chatTitle">Выберите чат</h2>
+                    <span id="chatStatus">...</span>
+                </div>
+                <div class="header-tools">
+                    <span>🔍</span><span>📞</span><span>⋮</span>
                 </div>
             </header>
+
             <div id="chatBox">
-                <div class="empty-state">
-                    <div class="w-img">@</div>
-                    <h2>Никто не выбран</h2>
-                    <p>Начни переписку с кем-нибудь из списка слева.</p>
+                <div class="empty-placeholder">
+                    <div class="blur-circle"></div>
+                    <h1>Xenocord</h1>
+                    <p>Выберите собеседника, чтобы начать ахуенное общение</p>
                 </div>
             </div>
-            <footer class="chat-input-container" id="inputArea" style="display:none;">
-                <div class="input-bar">
-                    <button class="attach-btn">+</button>
-                    <input type="text" id="chatInput" placeholder="Написать сообщение...">
-                    <button id="sendMsgBtn">🚀</button>
+
+            <footer class="input-area" id="inputArea" style="display:none;">
+                <div class="input-container">
+                    <button class="attach-file">📎</button>
+                    <input type="text" id="chatInput" placeholder="Напишите сообщение...">
+                    <button id="sendMsgBtn" class="send-trigger">Отправить</button>
                 </div>
             </footer>
         </main>
     </div>
 
-    <div id="settingsOverlay" class="full-overlay">
-        <div class="settings-view">
-            <nav class="settings-sidebar">
-                <div class="settings-side-list">
-                    <div class="side-label">НАСТРОЙКИ ПОЛЬЗОВАТЕЛЯ</div>
-                    <div class="side-item-settings active">Мой профиль</div>
-                    <div class="side-sep"></div>
-                    <button id="logoutBtn" class="side-item-settings logout">Выйти</button>
-                </div>
-            </nav>
-            <main class="settings-content">
-                <div class="settings-inner">
-                    <div class="settings-header-wrap">
-                        <h2>Мой профиль</h2>
-                        <button class="esc-btn" onclick="window.closeModal('settingsOverlay')">
-                            <div class="esc-circle">✕</div>
-                            <span>ESC</span>
-                        </button>
+    <div id="settingsOverlay" class="overlay-blur">
+        <div class="settings-window">
+            <div class="settings-nav">
+                <div class="s-nav-item active">Общие</div>
+                <div class="s-nav-item">Безопасность</div>
+                <div class="s-nav-item logout" id="logoutBtn">Выйти</div>
+            </div>
+            <div class="settings-main">
+                <button class="close-overlay" onclick="window.closeModal('settingsOverlay')">✕</button>
+                <h2>Профиль</h2>
+                <div class="settings-card">
+                    <div class="s-row">
+                        <label>Ваш псевдоним</label>
+                        <input type="text" id="nickInput">
                     </div>
-                    
-                    <div class="profile-card-ui">
-                        <div class="p-banner"></div>
-                        <div class="p-body">
-                            <div class="p-avatar-row">
-                                <div id="pAvatar" class="p-ava-circle">?</div>
-                            </div>
-                            <div class="p-info-box">
-                                <div class="p-group">
-                                    <label>НИКНЕЙМ</label>
-                                    <input type="text" id="nickInput">
-                                </div>
-                                <div class="p-group">
-                                    <label>О СЕБЕ</label>
-                                    <textarea id="bioInput"></textarea>
-                                </div>
-                                <div class="p-group">
-                                    <label>UID (НАЖМИ, ЧТОБЫ СКОПИРОВАТЬ)</label>
-                                    <div id="userUid" class="p-uid-box" onclick="window.copyUID()">...</div>
-                                </div>
-                                <button class="btn-save-p" onclick="window.saveProfile()">Сохранить изменения</button>
-                            </div>
-                        </div>
+                    <div class="s-row">
+                        <label>О себе</label>
+                        <textarea id="bioInput"></textarea>
                     </div>
+                    <div class="s-row">
+                        <label>Уникальный UID</label>
+                        <div class="uid-display" id="userUid" onclick="window.copyUID()">...</div>
+                    </div>
+                    <button class="save-button" onclick="window.saveProfile()">Сохранить всё</button>
                 </div>
-            </main>
-        </div>
-    </div>
-
-    <div id="addFriendModal" class="small-overlay">
-        <div class="modal-mini">
-            <h3>Добавить друга</h3>
-            <p>Вы можете добавить друга по его UID.</p>
-            <input type="text" id="friendUidInput" placeholder="Введите UID">
-            <div class="modal-mini-btns">
-                <button class="btn-ghost" onclick="window.closeModal('addFriendModal')">Отмена</button>
-                <button class="btn-primary" onclick="window.sendFriendRequest()">Отправить запрос</button>
             </div>
         </div>
     </div>
