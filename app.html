@@ -10,7 +10,7 @@
     <div class="app-container">
         <aside class="sidebar">
             <div class="user-card">
-                <h3 id="userNick" style="cursor:pointer">...</h3>
+                <h3 id="userNick">...</h3>
                 <button onclick="window.openModal('profileModal')" style="background:transparent; font-size:18px;">⚙️</button>
             </div>
             <div class="sidebar-content">
@@ -31,7 +31,7 @@
 
         <main class="chat-main">
             <header id="chatHeader">
-                <span id="chatTitle" style="font-weight: 800; cursor:pointer;">Выберите чат</span>
+                <span id="chatTitle" style="font-weight: 800;">Выберите чат</span>
                 <div id="typingIndicator"></div>
             </header>
             <div id="chatBox"></div>
@@ -54,11 +54,6 @@
         <input type="text" id="editNickInput" placeholder="Новый ник">
         <button id="saveProfileBtn" class="primary">Сохранить</button>
         <button class="secondary" onclick="window.closeModal('profileModal')">Закрыть</button>
-    </div></div>
-
-    <div id="viewProfileModal" class="modal"><div class="modal-content">
-        <div id="profileInfo"></div>
-        <button class="secondary" onclick="window.closeModal('viewProfileModal')">Закрыть</button>
     </div></div>
 
     <script type="module" src="main.js"></script>
