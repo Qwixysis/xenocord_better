@@ -175,3 +175,4 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('chatInput').onkeydown = (e) => { if(e.key === 'Enter') sendMsg(); };
     document.getElementById('logoutBtn').onclick = () => signOut(auth);
 });
+
