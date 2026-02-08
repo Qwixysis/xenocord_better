@@ -8,122 +8,106 @@
 </head>
 <body>
 
-    <div class="discord-app">
-        <nav class="guild-sidebar">
-            <div class="guild-icon active">X</div>
-            <div class="guild-separator"></div>
-            <div class="guild-icon add" onclick="window.openModal('addFriendModal')">+</div>
+    <div class="app-container">
+        <nav class="guilds-nav">
+            <div class="guild-item active" title="Личные сообщения">
+                <svg viewBox="0 0 24 24"><path fill="currentColor" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z" /></svg>
+            </div>
+            <div class="separator"></div>
+            <div class="guild-item add" onclick="window.openModal('addFriendModal')">+</div>
         </nav>
 
-        <aside class="channels-sidebar">
+        <aside class="sidebar">
             <header class="sidebar-header">
-                <button class="search-bar">Найти или начать беседу</button>
+                <button class="search-btn">Найти беседу</button>
             </header>
             
-            <div class="sidebar-scroll">
-                <div class="category-label">ЛИЧНЫЕ СООБЩЕНИЯ</div>
-                <ul id="friendsList" class="channel-list"></ul>
+            <div class="sidebar-scroller">
+                <div class="nav-label">ЛИЧНЫЕ СООБЩЕНИЯ</div>
+                <ul id="friendsList"></ul>
 
-                <div class="category-label">ЗАЯВКИ В ДРУЗЬЯ (<span id="pendingCount">0</span>)</div>
-                <ul id="pendingList" class="channel-list"></ul>
+                <div class="nav-label">ЗАПРОСЫ (<span id="pendingCount">0</span>)</div>
+                <ul id="pendingList"></ul>
             </div>
 
-            <section class="user-panel">
+            <footer class="user-footer">
                 <div class="user-info" onclick="window.openModal('settingsModal')">
-                    <div class="avatar-block">
-                        <div id="userAvatarMain" class="status-ava">J</div>
-                        <div class="status-dot online"></div>
+                    <div class="ava-wrapper">
+                        <div id="userAvatarMain" class="mini-ava">J</div>
+                        <div class="status-indicator online"></div>
                     </div>
-                    <div class="user-details">
-                        <div id="userNick" class="u-name">Загрузка...</div>
-                        <div class="u-status">#online</div>
+                    <div class="user-text">
+                        <div id="userNick">Загрузка...</div>
+                        <div class="status-sub">#онлайн</div>
                     </div>
                 </div>
-                <div class="user-actions">
-                    <button onclick="window.openModal('settingsModal')">⚙</button>
-                </div>
-            </section>
+                <button class="settings-btn" onclick="window.openModal('settingsModal')">⚙</button>
+            </footer>
         </aside>
 
-        <main class="chat-viewport">
-            <header class="chat-top-nav">
-                <div class="channel-info">
-                    <span class="at-symbol">@</span>
-                    <strong id="chatTitle">Выберите друга</strong>
-                </div>
-                <div class="top-actions">
-                    <button onclick="window.copyUID()">ID</button>
+        <main class="chat-window">
+            <header class="chat-header">
+                <div class="chat-identity">
+                    <span class="hash">@</span>
+                    <strong id="chatTitle">Друзья</strong>
                 </div>
             </header>
 
             <div id="chatBox">
-                <div class="empty-chat">
-                    <img src="https://discord.com/assets/f681559868f7470438b4d081f26a1f81.svg" alt="empty">
-                    <h3>Это начало вашей истории</h3>
-                    <p>Выберите друга слева, чтобы начать общение в Xenocord.</p>
+                <div class="empty-state">
+                    <div class="hero-img"></div>
+                    <h2>Никто не выбран</h2>
+                    <p>Выбери друга в списке слева, чтобы начать общение.</p>
                 </div>
             </div>
 
-            <footer class="input-area">
-                <div class="input-container">
-                    <button class="attach-btn">+</button>
-                    <input type="text" id="chatInput" placeholder="Написать..." autocomplete="off">
-                    <div class="input-icons">
-                        <button id="sendMsgBtn">🚀</button>
-                    </div>
+            <footer class="input-bar" id="inputArea" style="display: none;">
+                <div class="input-box">
+                    <button class="attach">+</button>
+                    <input type="text" id="chatInput" placeholder="Написать сообщение...">
+                    <button id="sendMsgBtn">🚀</button>
                 </div>
-                <div id="userUid" class="hidden-uid" style="display:none"></div>
             </footer>
         </main>
     </div>
 
-    <div id="settingsModal" class="modal-overlay">
-        <div class="modal-window">
-            <aside class="modal-sidebar">
-                <div class="m-item active" onclick="window.showTab('tabAccount', this)">Мой аккаунт</div>
-                <div class="m-item" onclick="window.showTab('tabProfile', this)">Профиль пользователя</div>
+    <div id="settingsModal" class="modal-full">
+        <div class="modal-wrap">
+            <div class="modal-side">
+                <div class="m-nav active" onclick="window.showTab('tabUser', this)">Профиль</div>
                 <div class="m-divider"></div>
-                <button id="logoutBtn" class="m-logout">Выйти</button>
-            </aside>
-            <main class="modal-main">
-                <button class="close-btn" onclick="window.closeModal('settingsModal')">✕</button>
-                
-                <div id="tabAccount" class="tab active">
-                    <h2>Мой аккаунт</h2>
-                    <div class="settings-card">
-                        <label>ВАШ УНИКАЛЬНЫЙ ID (UID)</label>
-                        <div class="uid-display" onclick="window.copyUID()">Нажмите, чтобы скопировать UID</div>
-                    </div>
-                </div>
-
-                <div id="tabProfile" class="tab">
-                    <h2>Профиль</h2>
-                    <div class="field">
-                        <label>ОТОБРАЖАЕМОЕ ИМЯ</label>
+                <button id="logoutBtn" class="m-out">Выйти</button>
+            </div>
+            <div class="modal-main">
+                <button class="m-close" onclick="window.closeModal('settingsModal')">✕</button>
+                <div id="tabUser" class="tab active">
+                    <h2>Настройки пользователя</h2>
+                    <div class="form-item">
+                        <label>НИКНЕЙМ</label>
                         <input type="text" id="nickInput">
                     </div>
-                    <div class="field">
+                    <div class="form-item">
                         <label>О СЕБЕ</label>
                         <textarea id="bioInput"></textarea>
                     </div>
-                    <div class="field">
-                        <label>АВАТАР (URL)</label>
-                        <input type="text" id="avaInput">
+                    <div class="form-item">
+                        <label>UID (НАЖМИТЕ ДЛЯ КОПИРОВАНИЯ)</label>
+                        <div class="uid-copy" id="userUid" onclick="window.copyUID()">...</div>
                     </div>
-                    <button class="save-btn" onclick="window.saveProfile()">Сохранить изменения</button>
+                    <button class="btn-save" onclick="window.saveProfile()">Сохранить изменения</button>
                 </div>
-            </main>
+            </div>
         </div>
     </div>
 
-    <div id="addFriendModal" class="modal-overlay">
-        <div class="modal-mini">
-            <h3>Добавить друга</h3>
-            <p>Вы можете добавить друга с помощью его UID.</p>
-            <input type="text" id="friendUidInput" placeholder="Вставьте UID друга...">
-            <div class="mini-actions">
+    <div id="addFriendModal" class="modal-full">
+        <div class="modal-small">
+            <h3>Добавить в друзья</h3>
+            <p>Введите UID пользователя, чтобы отправить запрос.</p>
+            <input type="text" id="friendUidInput" placeholder="UID: XXXXXXXX...">
+            <div class="modal-btns">
                 <button onclick="window.closeModal('addFriendModal')">Отмена</button>
-                <button class="primary" onclick="window.sendFriendRequest()">Отправить запрос</button>
+                <button class="btn-primary" onclick="window.sendFriendRequest()">Отправить</button>
             </div>
         </div>
     </div>
