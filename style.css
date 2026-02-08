@@ -9,13 +9,11 @@
     --danger: #da373c;
 }
 
-/* Эффект вылета сообщения */
 @keyframes messageIn {
     0% { opacity: 0; transform: translateY(20px) scale(0.9); }
     100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* Эффект появления модалки */
 @keyframes modalIn {
     from { opacity: 0; transform: translateY(-30px) scale(0.9); }
     to { opacity: 1; transform: translateY(0) scale(1); }
@@ -25,8 +23,8 @@ body { background: var(--bg-dark); color: var(--text); height: 100vh; overflow: 
 .app-container { display: flex; height: 100vh; }
 
 /* САЙДБАР */
-.sidebar { width: 280px; background: var(--bg-sidebar); display: flex; flex-direction: column; border-right: 1px solid #1a1a1c; }
-.user-card { padding: 20px; background: var(--bg-card); display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+.sidebar { width: 280px; background: var(--bg-sidebar); display: flex; flex-direction: column; border-right: 1px solid #111; }
+.user-card { padding: 20px; background: var(--bg-card); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #1a1a1c; }
 .sidebar-content { flex: 1; padding: 10px; overflow-y: auto; }
 .label { font-size: 11px; font-weight: 800; color: var(--text-muted); margin: 15px 8px 5px; text-transform: uppercase; }
 
@@ -34,7 +32,7 @@ li { padding: 10px; margin: 4px 0; border-radius: 8px; cursor: pointer; display:
 li:hover { background: rgba(255,255,255,0.05); }
 
 .sidebar-footer { padding: 15px; background: #232428; display: flex; flex-direction: column; gap: 8px; }
-.uid-section { background: var(--bg-dark); padding: 10px; border-radius: 12px; border: 1px dashed #4e5058; text-align: center; cursor: pointer; }
+.uid-section { background: var(--bg-dark); padding: 10px; border-radius: 12px; border: 1px dashed #4e5058; text-align: center; cursor: pointer; font-size: 11px; }
 
 /* ЧАТ */
 .chat-main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: #313338; }
@@ -48,7 +46,6 @@ li:hover { background: rgba(255,255,255,0.05); }
     position: relative; padding: 10px 14px; border-radius: 16px; background: #383a40;
     max-width: 75%; width: fit-content; align-self: flex-start;
     word-break: break-word; line-height: 1.4;
-    /* Анимация для КАЖДОГО нового сообщения */
     animation: messageIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
 }
 .msg.my { background: var(--accent); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
@@ -72,7 +69,7 @@ li:hover { background: rgba(255,255,255,0.05); }
 .modal-content { 
     background: var(--bg-sidebar); padding: 30px; border-radius: 20px; 
     width: 90%; max-width: 400px; text-align: center;
-    animation: modalIn 0.3s ease-out; /* Анимация при каждом открытии */
+    animation: modalIn 0.3s ease-out;
 }
 
 button { border: none; border-radius: 8px; padding: 12px 20px; cursor: pointer; font-weight: 700; transition: 0.2s; }
