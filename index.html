@@ -3,25 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xenocord - Вход</title>
-    <link rel="stylesheet" href="style.css?v=6.0">
+    <title>Xenocord - Авторизация</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body class="auth-page">
     <div class="auth-container">
-        <h2>Xenocord</h2>
-        <p>Добро пожаловать назад!</p>
-        
-        <input type="email" id="email" placeholder="Email">
-        <input type="password" id="password" placeholder="Пароль">
-        
-        <div class="remember-me">
-            <input type="checkbox" id="remember">
-            <label for="remember">Запомнить меня</label>
+        <div class="auth-header">
+            <h1>Xenocord</h1>
+            <p>Добро пожаловать в будущее общения</p>
         </div>
+        
+        <div class="auth-form">
+            <div class="input-group">
+                <label>Электронная почта</label>
+                <input type="email" id="email" placeholder="example@mail.com" required>
+            </div>
+            
+            <div class="input-group">
+                <label>Пароль</label>
+                <input type="password" id="password" placeholder="••••••••" required>
+            </div>
 
-        <button id="loginBtn">Войти</button>
-        <button id="registerBtn" class="secondary">Регистрация</button>
+            <div class="remember-me-container">
+                <input type="checkbox" id="remember">
+                <label for="remember">Запомнить меня</label>
+            </div>
+
+            <div class="auth-actions">
+                <button id="loginBtn" class="primary-btn">Войти</button>
+                <button id="registerBtn" class="secondary-btn">Создать аккаунт</button>
+            </div>
+        </div>
+        <div id="authError" class="error-message"></div>
     </div>
+
     <script type="module" src="auth.js"></script>
 </body>
 </html>
