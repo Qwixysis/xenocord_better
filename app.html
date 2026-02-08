@@ -10,19 +10,17 @@
     <div class="app-container">
         <aside class="sidebar">
             <div class="user-card">
-                <h3 id="userNick">Загрузка...</h3>
-                <button onclick="openModal('profileModal')" style="background:transparent; cursor:pointer; font-size:20px;">⚙️</button>
+                <h3 id="userNick">...</h3>
+                <button onclick="window.openModal('profileModal')" style="background:transparent; cursor:pointer; font-size:20px;">⚙️</button>
             </div>
-            
             <div class="sidebar-content">
                 <div class="label">ДРУЗЬЯ</div>
                 <ul id="friendsList"></ul>
                 <div class="label">ЗАПРОСЫ</div>
                 <ul id="pendingList"></ul>
             </div>
-
             <div class="sidebar-footer">
-                <button class="primary" onclick="openModal('friendModal')">+ Добавить друга</button>
+                <button class="primary" onclick="window.openModal('friendModal')">+ Добавить друга</button>
                 <div class="uid-section" id="copyUidBox">
                     <small>Твой UID (кликни)</small>
                     <code id="userUid">...</code>
@@ -33,13 +31,13 @@
 
         <main class="chat-main">
             <header id="chatHeader">
-                <span id="chatTitle" style="font-weight: 800; font-size: 18px;">Выберите чат</span>
+                <span id="chatTitle" style="font-weight: 800;">Выберите чат</span>
                 <div id="typingIndicator"></div>
             </header>
             <div id="chatBox"></div>
             <div class="chat-input-row">
                 <input type="text" id="chatInput" placeholder="Сообщение..." autocomplete="off">
-                <button id="sendMsgBtn" class="primary" style="width: auto;">GO</button>
+                <button id="sendMsgBtn" class="primary" style="width:auto; padding:0 20px;">GO</button>
             </div>
         </main>
     </div>
@@ -49,7 +47,7 @@
             <h3>Добавить друга</h3>
             <input type="text" id="friendUidInput" placeholder="UID пользователя">
             <button id="confirmSendRequest" class="primary">Отправить запрос</button>
-            <button class="secondary" onclick="closeModal('friendModal')">Отмена</button>
+            <button class="secondary" onclick="window.closeModal('friendModal')">Отмена</button>
         </div>
     </div>
 
@@ -58,7 +56,7 @@
             <h3>Профиль</h3>
             <input type="text" id="editNickInput" placeholder="Новый ник">
             <button id="saveProfileBtn" class="primary">Сохранить</button>
-            <button class="secondary" onclick="closeModal('profileModal')">Закрыть</button>
+            <button class="secondary" onclick="window.closeModal('profileModal')">Закрыть</button>
         </div>
     </div>
 
