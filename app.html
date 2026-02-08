@@ -3,167 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Xenocord | Project Jarvis Elite</title>
+    <title>Xenocord | Project Jarvis</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
     <div class="app-container">
-        
         <aside class="sidebar" id="mainSidebar">
             <div class="user-card">
-                <div class="user-info-wrapper">
-                    <div class="avatar-container">
-                        <div id="userAvatarMain" class="avatar-circle">J</div>
-                        <div class="status-dot online"></div>
-                    </div>
-                    <div class="name-status">
-                        <div id="userNick" class="nick-text">Загрузка...</div>
-                        <div class="status-text">В сети</div>
-                    </div>
+                <div id="userAvatarMain" class="avatar-circle">J</div>
+                <div class="name-status">
+                    <div id="userNick" style="font-weight: 700;">Загрузка...</div>
+                    <div style="font-size: 11px; color: #23a559;">В сети</div>
                 </div>
-                <button class="icon-btn settings-btn" onclick="window.openModal('settingsModal')" title="Настройки">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                </button>
+                <button class="settings-trigger" onclick="window.openModal('settingsModal')">⚙</button>
             </div>
 
-            <div class="sidebar-scrollable">
-                <div class="search-container">
-                    <input type="text" placeholder="Поиск или начало беседы" id="friendSearch">
-                </div>
-
-                <div class="label-group">
-                    <span class="label">ЛИЧНЫЕ СООБЩЕНИЯ</span>
-                    <button class="add-dm-btn" onclick="window.openModal('addFriendModal')">+</button>
-                </div>
-                
-                <ul id="friendsList" class="friends-nav-list">
-                    </ul>
-
-                <div class="label-group" style="margin-top: 20px;">
-                    <span class="label">ЗАПРОСЫ В ДРУЗЬЯ</span>
-                    <span id="pendingCount" class="badge">0</span>
-                </div>
-                <ul id="pendingList" class="pending-nav-list"></ul>
+            <div class="sidebar-content">
+                <div class="label">ЛИЧНЫЕ СООБЩЕНИЯ <button onclick="window.openModal('addFriendModal')">+</button></div>
+                <ul id="friendsList" class="nav-list"></ul>
+                <div class="label">ЗАПРОСЫ</div>
+                <ul id="pendingList" class="nav-list"></ul>
             </div>
 
             <div class="sidebar-footer">
-                <div class="id-display-box" onclick="window.copyUID()" title="Нажмите, чтобы скопировать">
-                    <span class="uid-label">ВАШ UID</span>
-                    <span id="userUid" class="uid-value">Загрузка...</span>
-                </div>
+                <div id="userUid" class="uid-box" onclick="window.copyUID()">UID...</div>
             </div>
         </aside>
 
         <main class="chat-main">
             <header id="chatHeader">
-                <div class="header-left">
-                    <button class="mobile-menu-toggle" onclick="window.toggleSidebar()">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
-                    </button>
-                    <div class="chat-icon">@</div>
-                    <div class="header-info">
-                        <strong id="chatTitle">Выберите контакт</strong>
-                        <div id="typingStatus" class="typing-indicator"></div>
-                    </div>
-                </div>
-                <div class="header-right">
-                    <button class="icon-btn" onclick="alert('Звонки скоро!')">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                    </button>
-                    <button class="icon-btn" onclick="window.openChatInfo()">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                    </button>
-                </div>
+                <button class="mobile-menu-toggle" onclick="window.toggleSidebar()">☰</button>
+                <span class="hash">@</span>
+                <strong id="chatTitle">Выберите чат</strong>
+                <div id="typingStatus"></div>
             </header>
 
             <div id="chatBox">
-                <div class="welcome-screen">
-                    <div class="welcome-logo">X</div>
-                    <h2>Это начало вашей истории</h2>
-                    <p>Выберите друга слева, чтобы начать общение в Xenocord.</p>
-                </div>
+                <div class="welcome">Выберите друга, чтобы начать общение</div>
             </div>
 
-            <div class="chat-input-area">
-                <div class="input-bar">
-                    <button class="attach-btn">+</button>
-                    <div class="input-wrapper">
-                        <input type="text" id="chatInput" placeholder="Написать сообщение..." autocomplete="off">
-                    </div>
-                    <button id="sendMsgBtn" class="send-btn">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-                    </button>
+            <div class="chat-input-row">
+                <div class="input-wrapper">
+                    <input type="text" id="chatInput" placeholder="Написать сообщение..." autocomplete="off">
+                    <button id="sendMsgBtn">GO</button>
                 </div>
-                <div class="input-hint"><strong>Enter</strong> для отправки • <strong>Shift + Enter</strong> для новой строки</div>
             </div>
         </main>
     </div>
 
     <div id="settingsModal" class="modal">
-        <div class="settings-layout">
-            <aside class="settings-sidebar">
-                <div class="s-label">НАСТРОЙКИ ПОЛЬЗОВАТЕЛЯ</div>
-                <div class="s-item active" onclick="window.showTab('tabProfile', this)">Профиль</div>
-                <div class="s-item" onclick="window.showTab('tabAccount', this)">Моя учётная запись</div>
-                <div class="s-divider"></div>
-                <div class="s-label">НАСТРОЙКИ ПРИЛОЖЕНИЯ</div>
-                <div class="s-item disabled">Внешний вид</div>
-                <div class="s-item disabled">Уведомления</div>
-                <div class="s-divider"></div>
-                <button id="logoutBtn" class="logout-btn">Выйти из системы</button>
-            </aside>
-            <main class="settings-content">
-                <button class="close-btn" onclick="window.closeModal('settingsModal')">✕</button>
-                
+        <div class="settings-window">
+            <div class="settings-left">
+                <div class="nav-item active" onclick="window.showTab('tabProfile', this)">Профиль</div>
+                <button id="logoutBtn" class="logout-btn">Выйти</button>
+            </div>
+            <div class="settings-right">
+                <button class="btn-close" onclick="window.closeModal('settingsModal')">✕</button>
                 <div id="tabProfile" class="tab-pane active">
-                    <h3>Профиль пользователя</h3>
-                    <div class="field-group">
-                        <label>ОТОБРАЖАЕМОЕ ИМЯ</label>
-                        <input type="text" id="nickInput">
-                    </div>
-                    <div class="field-group">
-                        <label>О СЕБЕ</label>
-                        <textarea id="bioInput" rows="3"></textarea>
-                    </div>
-                    <div class="field-group">
-                        <label>ССЫЛКА НА АВАТАР</label>
-                        <input type="text" id="avaInput" placeholder="https://example.com/photo.png">
-                    </div>
-                    <div class="save-bar">
-                        <button class="btn-primary" onclick="window.saveProfile()">Сохранить изменения</button>
-                    </div>
+                    <h2>Настройки профиля</h2>
+                    <label>Никнейм</label>
+                    <input type="text" id="nickInput">
+                    <label>О себе</label>
+                    <textarea id="bioInput"></textarea>
+                    <label>Аватар (URL)</label>
+                    <input type="text" id="avaInput">
+                    <button class="save-btn" onclick="window.saveProfile()">Сохранить</button>
                 </div>
-
-                <div id="tabAccount" class="tab-pane">
-                    <h3>Моя учётная запись</h3>
-                    <div class="account-card-preview">
-                        <div class="banner"></div>
-                        <div class="acc-info">
-                            <div class="acc-avatar"></div>
-                            <h4 id="accNickDisplay">User</h4>
-                        </div>
-                    </div>
-                    <p style="color: var(--text-muted); font-size: 13px; margin-top: 20px;">Xenocord ID: <span id="accUidDisplay" style="color: #fff;">...</span></p>
-                </div>
-            </main>
+            </div>
         </div>
     </div>
 
     <div id="addFriendModal" class="modal">
         <div class="mini-modal">
-            <h3>Добавить в друзья</h3>
-            <p>Введите UID вашего друга, чтобы отправить ему запрос.</p>
-            <input type="text" id="friendUidInput" placeholder="Напр. aB12cDeF34...">
-            <div class="mini-actions">
-                <button class="btn-link" onclick="window.closeModal('addFriendModal')">Отмена</button>
-                <button class="btn-primary" onclick="window.sendFriendRequest()">Отправить запрос</button>
-            </div>
+            <h3>Добавить друга</h3>
+            <input type="text" id="friendUidInput" placeholder="Введите UID">
+            <button onclick="window.sendFriendRequest()">Отправить</button>
+            <button onclick="window.closeModal('addFriendModal')">Отмена</button>
         </div>
     </div>
 
     <script type="module" src="main.js"></script>
-
 </body>
 </html>
