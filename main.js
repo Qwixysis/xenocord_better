@@ -9,13 +9,13 @@ const db = getFirestore();
 let currentChatUid = null;
 let unsubscribeChat = null;
 
-// ПРИВЯЗКА К WINDOW ДЛЯ HTML
+// ПРИНУДИТЕЛЬНАЯ ПРИВЯЗКА К WINDOW (Чтобы не было TypeErrors)
 window.openModal = (id) => document.getElementById(id).classList.add('active');
 window.closeModal = (id) => document.getElementById(id).classList.remove('active');
 
 window.showTab = (tabId, btn) => {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.m-item').forEach(i => i.classList.remove('active'));
+    document.querySelectorAll('.m-nav').forEach(n => n.classList.remove('active'));
     document.getElementById(tabId).classList.add('active');
     btn.classList.add('active');
 };
@@ -23,30 +23,27 @@ window.showTab = (tabId, btn) => {
 window.copyUID = () => {
     const uid = document.getElementById('userUid').innerText;
     navigator.clipboard.writeText(uid);
-    alert("UID скопирован в буфер!");
+    alert("UID скопирован!");
 };
 
 window.saveProfile = async () => {
     const user = auth.currentUser;
     const nick = document.getElementById('nickInput').value;
     const bio = document.getElementById('bioInput').value;
-    const ava = document.getElementById('avaInput').value;
     try {
-        await updateDoc(doc(db, "users", user.uid), { nick, bio, ava });
-        alert("Профиль обновлен!");
+        await updateDoc(doc(db, "users", user.uid), { nick, bio });
+        alert("Успешно сохранено!");
     } catch (e) { console.error(e); }
 };
 
 window.sendFriendRequest = async () => {
-    const input = document.getElementById('friendUidInput');
-    const targetUid = input.value.trim();
+    const targetUid = document.getElementById('friendUidInput').value.trim();
     if (!targetUid || targetUid === auth.currentUser.uid) return;
     try {
         await updateDoc(doc(db, "users", targetUid), { pending: arrayUnion(auth.currentUser.uid) });
         alert("Запрос отправлен!");
-        input.value = "";
         window.closeModal('addFriendModal');
-    } catch (e) { alert("Ошибка. Проверьте UID."); }
+    } catch (e) { alert("Пользователь не найден!"); }
 };
 
 window.acceptFriend = async (uid) => {
@@ -55,9 +52,11 @@ window.acceptFriend = async (uid) => {
     await updateDoc(doc(db, "users", uid), { friends: arrayUnion(myUid) });
 };
 
+// ОТКРЫТИЕ ЧАТА НА ПОЛНЫЙ ЭКРАН
 window.openChat = (fUid, nick) => {
     currentChatUid = fUid;
     document.getElementById("chatTitle").innerText = nick;
+    document.getElementById("inputArea").style.display = "block";
     const box = document.getElementById("chatBox");
     box.innerHTML = "";
     
@@ -70,16 +69,12 @@ window.openChat = (fUid, nick) => {
         snap.docs.forEach(d => {
             const m = d.data();
             const isMe = m.senderUid === auth.currentUser.uid;
-            
             const row = document.createElement("div");
             row.className = "msg-row";
             row.innerHTML = `
-                <div class="msg-avatar">${(isMe ? 'Вы' : nick)[0]}</div>
+                <div class="mini-ava">${(isMe ? 'Я' : nick)[0]}</div>
                 <div class="msg-content">
-                    <div class="msg-header">
-                        <span class="msg-author">${isMe ? 'Вы' : nick}</span>
-                        <span class="msg-time">${m.timestamp ? m.timestamp.toDate().toLocaleTimeString() : '...'}</span>
-                    </div>
+                    <div class="msg-head">${isMe ? 'Вы' : nick} <span style="font-size:10px; color:#949ba4; font-weight:normal;">${m.timestamp?.toDate().toLocaleTimeString() || ''}</span></div>
                     <div class="msg-text">${m.text}</div>
                 </div>
             `;
@@ -101,7 +96,7 @@ const sendMsg = async () => {
     input.value = "";
 };
 
-// СИСТЕМА СОБЫТИЙ
+// СЛУШАТЕЛЬ СОСТОЯНИЯ
 onAuthStateChanged(auth, (user) => {
     if (!user) { window.location.href = "index.html"; return; }
     document.getElementById("userUid").innerText = user.uid;
@@ -109,32 +104,27 @@ onAuthStateChanged(auth, (user) => {
     onSnapshot(doc(db, "users", user.uid), (snap) => {
         const d = snap.data();
         if (!d) return;
-        
         document.getElementById("userNick").innerText = d.nick || "Jarvis User";
         document.getElementById("userAvatarMain").innerText = (d.nick || "J")[0].toUpperCase();
-        document.getElementById("nickInput").value = d.nick || "";
-        document.getElementById("bioInput").value = d.bio || "";
 
-        // Друзья
         const fList = document.getElementById("friendsList");
         fList.innerHTML = "";
         (d.friends || []).forEach(async uid => {
             const fSnap = await getDoc(doc(db, "users", uid));
             const li = document.createElement("li");
-            li.innerHTML = `<div class="status-ava" style="width:24px;height:24px;font-size:10px">${(fSnap.data()?.nick || "U")[0]}</div> ${fSnap.data()?.nick}`;
+            li.innerHTML = `<div class="mini-ava" style="width:24px;height:24px;font-size:10px">${(fSnap.data()?.nick || 'U')[0]}</div> ${fSnap.data()?.nick}`;
             li.onclick = () => window.openChat(uid, fSnap.data()?.nick);
             fList.appendChild(li);
         });
 
-        // Заявки
         const pList = document.getElementById("pendingList");
-        const pCount = document.getElementById("pendingCount");
-        pCount.innerText = (d.pending || []).length;
+        document.getElementById("pendingCount").innerText = (d.pending || []).length;
         pList.innerHTML = "";
         (d.pending || []).forEach(async uid => {
             const pSnap = await getDoc(doc(db, "users", uid));
             const li = document.createElement("li");
-            li.innerHTML = `<span>${pSnap.data()?.nick}</span> <button class="primary" onclick="window.acceptFriend('${uid}')">✓</button>`;
+            li.style = "justify-content:space-between;";
+            li.innerHTML = `<span>${pSnap.data()?.nick}</span> <button onclick="window.acceptFriend('${uid}')" style="background:#23a559;border:none;color:white;padding:2px 5px;border-radius:3px;cursor:pointer;">✓</button>`;
             pList.appendChild(li);
         });
     });
