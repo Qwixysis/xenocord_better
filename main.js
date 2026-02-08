@@ -9,13 +9,13 @@ const db = getFirestore();
 let currentChatUid = null;
 let unsubscribeChat = null;
 
-// ФУНКЦИИ В ГЛОБАЛЬНУЮ ОБЛАСТЬ (WINDOW)
+// ПРИВЯЗКА К WINDOW ДЛЯ HTML
 window.openModal = (id) => document.getElementById(id).classList.add('active');
 window.closeModal = (id) => document.getElementById(id).classList.remove('active');
 
 window.showTab = (tabId, btn) => {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.m-item').forEach(i => i.classList.remove('active'));
     document.getElementById(tabId).classList.add('active');
     btn.classList.add('active');
 };
@@ -23,7 +23,7 @@ window.showTab = (tabId, btn) => {
 window.copyUID = () => {
     const uid = document.getElementById('userUid').innerText;
     navigator.clipboard.writeText(uid);
-    alert("UID скопирован!");
+    alert("UID скопирован в буфер!");
 };
 
 window.saveProfile = async () => {
@@ -33,18 +33,20 @@ window.saveProfile = async () => {
     const ava = document.getElementById('avaInput').value;
     try {
         await updateDoc(doc(db, "users", user.uid), { nick, bio, ava });
-        window.closeModal('settingsModal');
-    } catch (e) { alert("Ошибка сохранения"); }
+        alert("Профиль обновлен!");
+    } catch (e) { console.error(e); }
 };
 
 window.sendFriendRequest = async () => {
-    const targetUid = document.getElementById('friendUidInput').value.trim();
+    const input = document.getElementById('friendUidInput');
+    const targetUid = input.value.trim();
     if (!targetUid || targetUid === auth.currentUser.uid) return;
     try {
         await updateDoc(doc(db, "users", targetUid), { pending: arrayUnion(auth.currentUser.uid) });
         alert("Запрос отправлен!");
+        input.value = "";
         window.closeModal('addFriendModal');
-    } catch (e) { alert("Пользователь не найден"); }
+    } catch (e) { alert("Ошибка. Проверьте UID."); }
 };
 
 window.acceptFriend = async (uid) => {
@@ -57,7 +59,7 @@ window.openChat = (fUid, nick) => {
     currentChatUid = fUid;
     document.getElementById("chatTitle").innerText = nick;
     const box = document.getElementById("chatBox");
-    box.innerHTML = "Загрузка сообщений...";
+    box.innerHTML = "";
     
     const chatId = [auth.currentUser.uid, fUid].sort().join("_");
     if (unsubscribeChat) unsubscribeChat();
@@ -68,10 +70,20 @@ window.openChat = (fUid, nick) => {
         snap.docs.forEach(d => {
             const m = d.data();
             const isMe = m.senderUid === auth.currentUser.uid;
-            const div = document.createElement("div");
-            div.className = `msg ${isMe ? 'my' : 'their'}`;
-            div.innerText = m.text;
-            box.appendChild(div);
+            
+            const row = document.createElement("div");
+            row.className = "msg-row";
+            row.innerHTML = `
+                <div class="msg-avatar">${(isMe ? 'Вы' : nick)[0]}</div>
+                <div class="msg-content">
+                    <div class="msg-header">
+                        <span class="msg-author">${isMe ? 'Вы' : nick}</span>
+                        <span class="msg-time">${m.timestamp ? m.timestamp.toDate().toLocaleTimeString() : '...'}</span>
+                    </div>
+                    <div class="msg-text">${m.text}</div>
+                </div>
+            `;
+            box.appendChild(row);
         });
         box.scrollTop = box.scrollHeight;
     });
@@ -89,7 +101,7 @@ const sendMsg = async () => {
     input.value = "";
 };
 
-// АВТОРИЗАЦИЯ
+// СИСТЕМА СОБЫТИЙ
 onAuthStateChanged(auth, (user) => {
     if (!user) { window.location.href = "index.html"; return; }
     document.getElementById("userUid").innerText = user.uid;
@@ -97,16 +109,19 @@ onAuthStateChanged(auth, (user) => {
     onSnapshot(doc(db, "users", user.uid), (snap) => {
         const d = snap.data();
         if (!d) return;
+        
         document.getElementById("userNick").innerText = d.nick || "Jarvis User";
         document.getElementById("userAvatarMain").innerText = (d.nick || "J")[0].toUpperCase();
+        document.getElementById("nickInput").value = d.nick || "";
+        document.getElementById("bioInput").value = d.bio || "";
 
-        // Список друзей
+        // Друзья
         const fList = document.getElementById("friendsList");
         fList.innerHTML = "";
         (d.friends || []).forEach(async uid => {
             const fSnap = await getDoc(doc(db, "users", uid));
             const li = document.createElement("li");
-            li.innerHTML = `<div class="ava" style="width:30px;height:30px">${(fSnap.data()?.nick || "U")[0]}</div> ${fSnap.data()?.nick}`;
+            li.innerHTML = `<div class="status-ava" style="width:24px;height:24px;font-size:10px">${(fSnap.data()?.nick || "U")[0]}</div> ${fSnap.data()?.nick}`;
             li.onclick = () => window.openChat(uid, fSnap.data()?.nick);
             fList.appendChild(li);
         });
@@ -119,7 +134,7 @@ onAuthStateChanged(auth, (user) => {
         (d.pending || []).forEach(async uid => {
             const pSnap = await getDoc(doc(db, "users", uid));
             const li = document.createElement("li");
-            li.innerHTML = `<span>${pSnap.data()?.nick}</span> <button class="primary" onclick="window.acceptFriend('${uid}')">OK</button>`;
+            li.innerHTML = `<span>${pSnap.data()?.nick}</span> <button class="primary" onclick="window.acceptFriend('${uid}')">✓</button>`;
             pList.appendChild(li);
         });
     });
