@@ -3,56 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xenocord | Project Jarvis</title>
+    <title>Xenocord | Project Jarvis Full</title>
     <link rel="stylesheet" href="style.css">
-</head>
+    </head>
 <body>
 
     <div class="app-container">
+        
         <aside class="sidebar">
             <div class="user-card">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div id="statusIndicator" style="width: 10px; height: 10px; background: var(--success); border-radius: 50%;"></div>
-                    <span id="userNick" style="font-weight: bold; font-size: 15px;">Загрузка...</span>
+                <div class="user-info-wrapper" style="display: flex; align-items: center; gap: 12px;">
+                    <div class="avatar-container" style="position: relative;">
+                        <div id="userAvatarMain" style="width: 32px; height: 32px; background: #5865f2; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; color: white;">
+                            J
+                        </div>
+                        <div class="status-dot" style="position: absolute; bottom: 0; right: 0; width: 10px; height: 10px; background: #23a559; border: 2px solid var(--bg-card); border-radius: 50%;"></div>
+                    </div>
+                    <div class="name-status">
+                        <div id="userNick" style="font-weight: 700; font-size: 14px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;">
+                            Загрузка...
+                        </div>
+                        <div style="font-size: 11px; color: var(--text-muted);">В сети</div>
+                    </div>
                 </div>
-                <button onclick="window.openModal('settingsModal')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size: 18px;">⚙️</button>
+                <button class="settings-trigger" onclick="window.openModal('settingsModal')" style="background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 5px; transition: color 0.2s;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                </button>
             </div>
 
             <div class="sidebar-content">
-                <div class="label">Личные сообщения</div>
-                <ul id="friendsList">
+                <div class="label-container" style="display: flex; justify-content: space-between; align-items: center; padding-right: 8px;">
+                    <span class="label">Личные сообщения</span>
+                    <span style="font-size: 16px; color: var(--text-muted); cursor: pointer;">+</span>
+                </div>
+                <ul id="friendsList" class="friends-nav-list">
                     </ul>
 
-                <div class="label" style="margin-top: 25px;">Запросы в друзья</div>
-                <ul id="pendingList">
+                <div class="label" style="margin-top: 24px;">Запросы в друзья</div>
+                <ul id="pendingList" class="pending-nav-list">
                     </ul>
             </div>
 
             <div class="sidebar-footer">
-                <button class="btn-primary" onclick="window.openModal('addFriendModal')" style="width: 100%;">Добавить друга</button>
-                <div style="margin-top: 10px; text-align: center;">
-                    <span style="font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px;">Ваш идентификатор</span>
-                    <div id="userUid" style="font-size: 10px; color: var(--accent); margin-top: 2px; font-family: monospace; cursor: pointer;" onclick="navigator.clipboard.writeText(this.innerText); alert('UID скопирован!');">...</div>
+                <button class="btn-primary" onclick="window.openModal('addFriendModal')" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                    <span>Добавить друга</span>
+                </button>
+                <div class="id-badge" style="margin-top: 12px; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 4px; border: 1px dashed rgba(255,255,255,0.1);">
+                    <div style="font-size: 9px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; text-align: center;">Ваш уникальный UID</div>
+                    <div id="userUid" style="font-size: 10px; color: var(--accent); font-family: monospace; text-align: center; cursor: pointer; word-break: break-all;" title="Нажмите, чтобы скопировать">
+                        Загрузка...
+                    </div>
                 </div>
             </div>
         </aside>
 
         <main class="chat-main">
             <header id="chatHeader">
-                <span style="color: var(--text-muted); margin-right: 10px; font-size: 20px;">@</span>
-                <strong id="chatTitle">Выберите беседу</strong>
+                <div class="header-left" style="display: flex; align-items: center; gap: 10px;">
+                    <span style="color: var(--text-muted); font-size: 24px; font-weight: 300;">@</span>
+                    <strong id="chatTitle" style="font-size: 16px;">Выберите чат</strong>
+                    <div id="typingStatus" style="font-size: 12px; color: var(--success); font-weight: 500;"></div>
+                </div>
+                <div class="header-right">
+                    </div>
             </header>
 
             <div id="chatBox">
-                <div style="flex: 1; display: flex; align-items: center; justify-content: center; flex-direction: column; opacity: 0.2;">
-                    <div style="font-size: 50px;">💬</div>
-                    <p>Здесь будет ваша история переписки</p>
+                <div class="empty-chat-state" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0.3;">
+                    <div style="width: 100px; height: 100px; margin-bottom: 20px;">
+                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 1.821.487 3.53 1.338 5L2 22l5-1.338c1.47.851 3.179 1.338 5 1.338 5.523 0 10-4.477 10-10S17.523 2 12 2zm1 13h-2v-2h2v2zm0-4h-2V7h2v4z"/></svg>
+                    </div>
+                    <h2>Добро пожаловать в Xenocord</h2>
+                    <p>Выберите друга из списка слева, чтобы начать общение.</p>
                 </div>
             </div>
 
             <div class="chat-input-row">
-                <input type="text" id="chatInput" placeholder="Напишите что-нибудь..." autocomplete="off">
-                <button id="sendMsgBtn" class="btn-primary" style="width: auto; padding: 10px 25px;">ОТПРАВИТЬ</button>
+                <div class="input-wrapper" style="position: relative; display: flex; gap: 10px; align-items: flex-end;">
+                    <div class="input-actions-left" style="padding-bottom: 10px;">
+                        <button style="background: #b5bac1; color: #313338; border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-weight: bold;">+</button>
+                    </div>
+                    
+                    <div class="textarea-container" style="flex: 1; position: relative;">
+                        <input type="text" id="chatInput" placeholder="Написать сообщение..." autocomplete="off">
+                    </div>
+
+                    <div class="input-actions-right" style="padding-bottom: 2px;">
+                        <button id="sendMsgBtn" class="btn-primary" style="height: 44px; padding: 0 20px;">ОТПРАВИТЬ</button>
+                    </div>
+                </div>
+                <div class="input-footer-hint" style="font-size: 11px; color: var(--text-muted); margin-top: 8px; padding-left: 45px;">
+                    <strong>Enter</strong> чтобы отправить • <strong>Shift + Enter</strong> для новой строки
+                </div>
             </div>
         </main>
     </div>
@@ -61,67 +103,87 @@
         <div class="settings-window">
             <div class="settings-left">
                 <div class="label">Настройки пользователя</div>
-                <div class="nav-item active" onclick="window.showTab('tabProfile', this)">Профиль</div>
-                <div class="nav-item" onclick="window.showTab('tabAccount', this)">Аккаунт</div>
+                <div class="nav-item active" onclick="window.showTab('tabProfile', this)">Профиль пользователя</div>
+                <div class="nav-item" onclick="window.showTab('tabAccount', this)">Моя учётная запись</div>
                 
-                <div style="margin-top: auto; padding: 10px; font-size: 10px; color: var(--text-muted);">
-                    Xenocord v1.0.4<br>Build: 2026.02.08
+                <div class="sidebar-separator" style="height: 1px; background: var(--border); margin: 10px 0;"></div>
+                
+                <div class="label">Настройки приложения</div>
+                <div class="nav-item" style="opacity: 0.5; cursor: not-allowed;">Внешний вид (скоро)</div>
+                <div class="nav-item" style="opacity: 0.5; cursor: not-allowed;">Уведомления (скоро)</div>
+                
+                <div style="margin-top: auto; padding-top: 20px;">
+                    <button id="logoutBtn" class="btn-danger" style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                        <span>Выйти из аккаунта</span>
+                    </button>
                 </div>
             </div>
 
             <div class="settings-right">
-                <button class="btn-close" onclick="window.closeModal('settingsModal')">✕</button>
+                <button class="btn-close" onclick="window.closeModal('settingsModal')" aria-label="Закрыть">✕</button>
                 
                 <div id="tabProfile" class="settings-tab active">
-                    <h2 style="margin-bottom: 20px;">Мой профиль</h2>
+                    <h2 style="margin-bottom: 8px; color: #fff;">Профиль пользователя</h2>
+                    <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 25px;">Здесь вы можете изменить свою публичную информацию.</p>
                     
-                    <div class="field-group">
-                        <label>Отображаемое имя</label>
-                        <input type="text" id="nickInput" placeholder="Введите ваш ник">
+                    <div class="setting-item" style="margin-bottom: 20px;">
+                        <label>Никнейм</label>
+                        <input type="text" id="nickInput" placeholder="Как вас будут видеть другие?">
                     </div>
 
-                    <div class="field-group">
+                    <div class="setting-item" style="margin-bottom: 20px;">
                         <label>О себе</label>
-                        <textarea id="bioInput" rows="4" placeholder="Расскажите о себе что-нибудь интересное..."></textarea>
+                        <textarea id="bioInput" rows="4" placeholder="Расскажите немного о себе..."></textarea>
                     </div>
 
-                    <div class="field-group">
-                        <label>Ссылка на аватарку</label>
-                        <input type="text" id="avaInput" placeholder="https://example.com/photo.jpg">
+                    <div class="setting-item" style="margin-bottom: 25px;">
+                        <label>Ссылка на аватар (URL)</label>
+                        <input type="text" id="avaInput" placeholder="https://example.com/my-photo.png">
                     </div>
 
-                    <button class="btn-primary" onclick="window.saveProfile()" style="margin-top: 10px;">Сохранить изменения</button>
+                    <div class="settings-actions-panel" style="background: var(--bg-card); padding: 16px; border-radius: 8px; display: flex; justify-content: flex-end;">
+                        <button class="btn-primary" onclick="window.saveProfile()" style="padding: 10px 24px;">Сохранить изменения</button>
+                    </div>
                 </div>
 
                 <div id="tabAccount" class="settings-tab">
-                    <h2 style="margin-bottom: 20px;">Управление аккаунтом</h2>
-                    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 30px;">
-                        Здесь вы можете выйти из своей учетной записи. Будьте осторожны, не передавайте свои данные третьим лицам.
-                    </p>
-                    <button id="logoutBtn" class="btn-danger">Выйти из Xenocord</button>
+                    <h2 style="margin-bottom: 8px; color: #fff;">Моя учётная запись</h2>
+                    <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 25px;">Управление безопасностью и доступом.</p>
+                    
+                    <div class="account-card" style="background: var(--bg-card); padding: 20px; border-radius: 8px; border: 1px solid var(--border);">
+                        <div style="margin-bottom: 15px;">
+                            <label style="margin-bottom: 5px; display: block;">Электронная почта</label>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" value="скрыто в целях безопасности" readonly style="margin: 0; filter: blur(4px);">
+                                <button class="btn-primary" style="white-space: nowrap; font-size: 12px;">Изменить</button>
+                            </div>
+                        </div>
+                        <div style="color: var(--danger); font-size: 13px; font-weight: 600; cursor: pointer;">Удалить аккаунт безвозвратно</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <div id="addFriendModal" class="modal">
-        <div class="settings-window" style="width: 400px; height: auto; flex-direction: column; padding: 30px; position: relative;">
+        <div class="settings-window" style="width: 440px; height: auto; flex-direction: column; padding: 24px; position: relative;">
             <button class="btn-close" onclick="window.closeModal('addFriendModal')">✕</button>
-            <h2 style="margin-bottom: 10px;">Добавить в друзья</h2>
-            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
-                Введите уникальный идентификатор (UID) вашего друга, чтобы отправить ему запрос.
-            </p>
+            <h2 style="margin-bottom: 8px; color: #fff;">Добавить в друзья</h2>
+            <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">Вы можете добавить друга, используя его уникальный ID Xenocord.</p>
             
-            <label>Идентификатор пользователя</label>
-            <input type="text" id="friendUidInput" placeholder="Например: abc123xyz..." style="margin-bottom: 10px;">
-            
-            <div style="display: flex; gap: 10px; margin-top: 10px;">
-                <button class="btn-primary" onclick="window.sendFriendRequest()" style="flex: 1;">Отправить запрос</button>
-                <button onclick="window.closeModal('addFriendModal')" style="background: none; border: none; color: white; cursor: pointer; padding: 0 15px;">Отмена</button>
+            <div class="input-group">
+                <label style="font-size: 11px; margin-bottom: 8px; display: block;">ID ПОЛЬЗОВАТЕЛЯ</label>
+                <input type="text" id="friendUidInput" placeholder="Введите UID (например: aB12cDeF34...)" style="margin-bottom: 8px; background: #111;">
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 16px; justify-content: flex-end;">
+                <button onclick="window.closeModal('addFriendModal')" style="background: none; border: none; color: white; cursor: pointer; padding: 0 15px; font-size: 14px;">Отмена</button>
+                <button class="btn-primary" onclick="window.sendFriendRequest()" style="padding: 10px 20px;">Отправить запрос</button>
             </div>
         </div>
     </div>
 
     <script type="module" src="main.js"></script>
+
 </body>
 </html>
