@@ -12,7 +12,11 @@ let unsubscribeTyping = null;
 let typingTimeout = null;
 let shownMsgIds = new Set();
 
-// ЭКСПОРТ ФУНКЦИЙ В ГЛОБАЛЬНУЮ ОБЛАСТЬ (window)
+// Антиспам переменные
+let messageCount = 0;
+let lastResetTime = Date.now();
+
+// Глобальные функции для окон
 window.openModal = (id) => {
     const el = document.getElementById(id);
     if (el) el.classList.add('active');
@@ -22,7 +26,23 @@ window.closeModal = (id) => {
     if (el) el.classList.remove('active');
 };
 
-// Проверка авторизации
+// Просмотр профиля друга
+window.viewFriendProfile = async (fUid) => {
+    const snap = await getDoc(doc(db, "users", fUid));
+    if (snap.exists()) {
+        const data = snap.data();
+        document.getElementById("profileInfo").innerHTML = `
+            <div style="text-align:center;">
+                <div style="font-size:40px;">👤</div>
+                <h2 style="margin:10px 0;">${data.nick || "Без ника"}</h2>
+                <p style="color:#949ba4; font-size:12px;">UID: ${fUid}</p>
+                <p style="margin-top:10px; color:#dbdee1;">Статус: В сети (тест)</p>
+            </div>
+        `;
+        window.openModal('viewProfileModal');
+    }
+};
+
 onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = "index.html"; return; }
     const uidEl = document.getElementById("userUid");
@@ -40,7 +60,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 async function updateTyping(isTyping) {
-    if (!currentChatUid) return;
+    if (!currentChatUid || !auth.currentUser) return;
     const chatId = [auth.currentUser.uid, currentChatUid].sort().join("_");
     await setDoc(doc(db, "typing", chatId), { [auth.currentUser.uid]: isTyping }, { merge: true });
 }
@@ -49,17 +69,40 @@ async function sendMsg() {
     const input = document.getElementById('chatInput');
     if (!input || !input.value.trim() || !currentChatUid) return;
 
+    // ЗАЩИТА ОТ СПАМА (5 сообщений за 3 секунды)
+    const now = Date.now();
+    if (now - lastResetTime > 3000) {
+        messageCount = 0;
+        lastResetTime = now;
+    }
+    messageCount++;
+    if (messageCount > 5) {
+        alert("Слишком быстро! Подождите пару секунд.");
+        return;
+    }
+
     const chatId = [auth.currentUser.uid, currentChatUid].sort().join("_");
     await addDoc(collection(db, "privateMessages", chatId, "messages"), {
         senderUid: auth.currentUser.uid,
         text: input.value,
-        timestamp: serverTimestamp()
+        timestamp: serverTimestamp(),
+        edited: false
     });
     input.value = "";
     updateTyping(false);
 }
 
-// Рендер сообщений
+window.editMsg = async (msgId, oldText) => {
+    const newText = prompt("Редактировать сообщение:", oldText);
+    if (newText && newText !== oldText) {
+        const chatId = [auth.currentUser.uid, currentChatUid].sort().join("_");
+        await updateDoc(doc(db, "privateMessages", chatId, "messages", msgId), {
+            text: newText,
+            edited: true
+        });
+    }
+};
+
 async function openChat(fUid, nick) {
     if (currentChatUid === fUid) return;
     currentChatUid = fUid;
@@ -67,6 +110,7 @@ async function openChat(fUid, nick) {
     const box = document.getElementById("chatBox");
     if (box) box.innerHTML = "";
     document.getElementById("chatTitle").innerText = nick;
+    document.getElementById("chatTitle").onclick = () => window.viewFriendProfile(fUid);
 
     const chatId = [auth.currentUser.uid, fUid].sort().join("_");
 
@@ -78,22 +122,38 @@ async function openChat(fUid, nick) {
         Array.from(box.children).forEach(el => { if (!dbIds.includes(el.id)) el.remove(); });
 
         snap.docChanges().forEach(change => {
+            const d = change.doc;
+            const data = d.data();
+            const isMe = data.senderUid === auth.currentUser.uid;
+            
+            // Форматирование времени
+            const date = data.timestamp ? data.timestamp.toDate() : new Date();
+            const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
             if (change.type === "added") {
-                const d = change.doc;
-                if (!shownMsgIds.has(d.id)) {
-                    const isMe = d.data().senderUid === auth.currentUser.uid;
-                    const div = document.createElement("div");
-                    div.id = d.id;
-                    div.className = `msg ${isMe ? 'my' : ''} new-msg`;
-                    div.innerHTML = `<span>${d.data().text}</span>${isMe ? `<button class="del-msg-btn">✕</button>` : ''}`;
-                    if (isMe) {
-                        const btn = div.querySelector('.del-msg-btn');
-                        btn.onclick = async () => {
-                            if(confirm("Удалить?")) await deleteDoc(doc(db, "privateMessages", chatId, "messages", d.id));
-                        };
-                    }
-                    box.appendChild(div);
-                    shownMsgIds.add(d.id);
+                const div = document.createElement("div");
+                div.id = d.id;
+                div.className = `msg ${isMe ? 'my' : ''} new-msg`;
+                div.innerHTML = `
+                    <div class="msg-content">${data.text}</div>
+                    <div class="msg-footer">
+                        ${timeStr} ${data.edited ? '(изм.)' : ''}
+                    </div>
+                    <div class="msg-actions">
+                        ${isMe ? `<button onclick="window.editMsg('${d.id}', '${data.text.replace(/'/g, "\\'")}')">✎</button>` : ''}
+                        <button class="del-btn">✕</button>
+                    </div>
+                `;
+                div.querySelector('.del-btn').onclick = async () => {
+                    if(confirm("Удалить?")) await deleteDoc(doc(db, "privateMessages", chatId, "messages", d.id));
+                };
+                box.appendChild(div);
+                shownMsgIds.add(d.id);
+            } else if (change.type === "modified") {
+                const el = document.getElementById(d.id);
+                if (el) {
+                    el.querySelector(".msg-content").innerText = data.text;
+                    el.querySelector(".msg-footer").innerHTML = `${timeStr} (изм.)`;
                 }
             }
         });
@@ -108,7 +168,6 @@ async function openChat(fUid, nick) {
     });
 }
 
-// ИНИЦИАЛИЗАЦИЯ СОБЫТИЙ (с проверкой на null)
 document.addEventListener('DOMContentLoaded', () => {
     const input = document.getElementById('chatInput');
     input?.addEventListener('input', () => {
@@ -116,21 +175,23 @@ document.addEventListener('DOMContentLoaded', () => {
         clearTimeout(typingTimeout);
         typingTimeout = setTimeout(() => updateTyping(false), 2000);
     });
+    // ОТПРАВКА ПО ENTER
+    input?.addEventListener('keydown', (e) => { 
+        if (e.key === 'Enter' && !e.shiftKey) { 
+            e.preventDefault(); 
+            sendMsg(); 
+        } 
+    });
 
-    const sendBtn = document.getElementById('sendMsgBtn');
-    if (sendBtn) sendBtn.onclick = sendMsg;
-
-    const saveProfBtn = document.getElementById('saveProfileBtn');
-    if (saveProfBtn) saveProfBtn.onclick = async () => {
+    document.getElementById('sendMsgBtn').onclick = sendMsg;
+    document.getElementById('saveProfileBtn').onclick = async () => {
         const nick = document.getElementById('editNickInput')?.value.trim();
         if (nick) {
             await updateDoc(doc(db, "users", auth.currentUser.uid), { nick });
             window.closeModal('profileModal');
         }
     };
-
-    const confirmFriendBtn = document.getElementById('confirmSendRequest');
-    if (confirmFriendBtn) confirmFriendBtn.onclick = async () => {
+    document.getElementById('confirmSendRequest').onclick = async () => {
         const uid = document.getElementById('friendUidInput')?.value.trim();
         if (uid) {
             await updateDoc(doc(db, "users", uid), { pending: arrayUnion(auth.currentUser.uid) });
@@ -138,18 +199,13 @@ document.addEventListener('DOMContentLoaded', () => {
             window.closeModal('friendModal');
         }
     };
-
-    const copyBtn = document.getElementById('copyUidBox');
-    if (copyBtn) copyBtn.onclick = () => {
+    document.getElementById('copyUidBox').onclick = () => {
         navigator.clipboard.writeText(document.getElementById('userUid').innerText);
         alert("UID скопирован!");
     };
-
-    const logoutBtn = document.getElementById('logoutBtn');
-    if (logoutBtn) logoutBtn.onclick = () => signOut(auth);
+    document.getElementById('logoutBtn').onclick = () => signOut(auth);
 });
 
-// Рендер списков
 async function renderFriends(data) {
     const list = document.getElementById("friendsList");
     if (!list) return;
@@ -161,7 +217,7 @@ async function renderFriends(data) {
         li.onclick = () => openChat(fUid, fSnap.data()?.nick);
         li.querySelector('.del-friend-btn').onclick = (e) => {
             e.stopPropagation();
-            updateDoc(doc(db, "users", auth.currentUser.uid), { friends: arrayRemove(fUid) });
+            if(confirm("Удалить друга?")) updateDoc(doc(db, "users", auth.currentUser.uid), { friends: arrayRemove(fUid) });
         };
         list.appendChild(li);
     }
