@@ -78,7 +78,8 @@ async function openChat(fUid, nick) {
     if (unsubscribeChat) unsubscribeChat();
     const q = query(collection(db, "privateMessages", chatId, "messages"), orderBy("timestamp"));
     
-    unsubscribeChat = onSnapshot(q, (snap) => {
+    // Включаем includeMetadataChanges для мгновенного отображения
+    unsubscribeChat = onSnapshot(q, { includeMetadataChanges: true }, (snap) => {
         const dbIds = snap.docs.map(d => d.id);
         Array.from(box.children).forEach(el => { if (!dbIds.includes(el.id)) el.remove(); });
         
@@ -87,8 +88,8 @@ async function openChat(fUid, nick) {
             const data = d.data(); 
             const isMe = data.senderUid === auth.currentUser.uid;
             
-            // ФИКС ВРЕМЕНИ: если сервер еще не вернул время, берем текущее локальное
-            let date = data.timestamp ? data.timestamp.toDate() : new Date();
+            // Если timestamp еще null (в процессе записи), используем текущее время устройства
+            let date = (data.timestamp && data.timestamp.toDate) ? data.timestamp.toDate() : new Date();
             let timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
             if (change.type === "added") {
@@ -96,15 +97,11 @@ async function openChat(fUid, nick) {
                 div.id = d.id; 
                 div.className = `msg ${isMe ? 'my' : ''}`;
                 
-                // Кнопки действий теперь добавляются ТОЛЬКО если isMe === true
-                let actionsHtml = "";
-                if (isMe) {
-                    actionsHtml = `
-                        <div class="msg-actions">
-                            <button onclick="window.editMsg('${d.id}', '${data.text.replace(/'/g, "\\'")}')">✎</button>
-                            <button onclick="window.deleteMsg('${d.id}')">✕</button>
-                        </div>`;
-                }
+                let actionsHtml = isMe ? `
+                    <div class="msg-actions">
+                        <button onclick="window.editMsg('${d.id}', '${data.text.replace(/'/g, "\\'")}')">✎</button>
+                        <button onclick="window.deleteMsg('${d.id}')">✕</button>
+                    </div>` : "";
 
                 div.innerHTML = `
                     <div class="msg-content">${data.text}</div>
@@ -115,7 +112,10 @@ async function openChat(fUid, nick) {
                 box.scrollTop = box.scrollHeight;
             } else if (change.type === "modified") {
                 const el = document.getElementById(d.id);
-                if (el) el.querySelector(".msg-content").innerText = data.text;
+                if (el) {
+                    el.querySelector(".msg-content").innerText = data.text;
+                    el.querySelector(".msg-footer").innerText = timeStr;
+                }
             }
         });
     });
