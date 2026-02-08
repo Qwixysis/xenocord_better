@@ -1,3 +1,8 @@
+/**
+ * XENOCORD CORE ENGINE
+ * Author: Jarvis Assistant
+ */
+
 import { auth } from "./firebase.js";
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { 
@@ -9,129 +14,217 @@ const db = getFirestore();
 let currentChatUid = null;
 let unsubscribeChat = null;
 
-// ПРИВЯЗКА ФУНКЦИЙ К WINDOW (КРИТИЧНО ДЛЯ ОШИБОК ОНКЛИК)
-window.openModal = (id) => document.getElementById(id).classList.add('active');
-window.closeModal = (id) => document.getElementById(id).classList.remove('active');
-window.toggleSidebar = () => document.getElementById('mainSidebar').classList.toggle('mobile-active');
+// ==========================================
+// 1. ГЛОБАЛЬНЫЙ МОДУЛЬ (Экспорт в Window)
+// ==========================================
+const UI = {
+    openModal: (id) => {
+        const modal = document.getElementById(id);
+        modal.classList.add('active');
+        modal.style.opacity = '0';
+        setTimeout(() => modal.style.opacity = '1', 50);
+    },
+    closeModal: (id) => document.getElementById(id).classList.remove('active'),
+    
+    toggleSidebar: () => document.getElementById('mainSidebar').classList.toggle('mobile-active'),
+    
+    showTab: (tabId, btn) => {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.m-nav-item').forEach(i => i.classList.remove('active'));
+        document.getElementById(tabId).classList.add('active');
+        btn.classList.add('active');
+    },
 
-window.showTab = (tabId, btn) => {
-    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-    document.getElementById(tabId).classList.add('active');
-    btn.classList.add('active');
+    copyUID: () => {
+        const uid = document.getElementById('userUid').innerText;
+        navigator.clipboard.writeText(uid).then(() => {
+            alert("UID успешно скопирован в буфер обмена!");
+        });
+    }
 };
 
-window.copyUID = () => {
-    const uid = document.getElementById('userUid').innerText;
-    navigator.clipboard.writeText(uid);
-    alert("UID скопирован!");
-};
+Object.assign(window, UI);
 
+// ==========================================
+// 2. ЯДРО ПОЛЬЗОВАТЕЛЯ
+// ==========================================
 window.saveProfile = async () => {
     const user = auth.currentUser;
     if (!user) return;
-    const nick = document.getElementById('nickInput').value;
-    const bio = document.getElementById('bioInput').value;
-    const ava = document.getElementById('avaInput').value;
+    
+    const nick = document.getElementById('nickInput').value.trim();
+    const bio = document.getElementById('bioInput').value.trim();
+    const ava = document.getElementById('avaInput').value.trim();
+
     try {
-        await updateDoc(doc(db, "users", user.uid), { nick, bio, ava });
-        alert("Профиль обновлен!");
-        window.closeModal('settingsModal');
-    } catch (e) { alert("Ошибка сохранения"); }
+        await updateDoc(doc(db, "users", user.uid), {
+            nick: nick || "Jarvis User",
+            bio: bio || "",
+            ava: ava || ""
+        });
+        UI.closeModal('settingsModal');
+    } catch (e) {
+        console.error("Ошибка сохранения:", e);
+    }
 };
 
 window.sendFriendRequest = async () => {
     const input = document.getElementById('friendUidInput');
     const targetUid = input.value.trim();
-    if (!targetUid || targetUid === auth.currentUser.uid) return;
+    
+    if (!targetUid || targetUid === auth.currentUser.uid) {
+        alert("Некорректный UID");
+        return;
+    }
+
     try {
-        await updateDoc(doc(db, "users", targetUid), { pending: arrayUnion(auth.currentUser.uid) });
+        await updateDoc(doc(db, "users", targetUid), {
+            pending: arrayUnion(auth.currentUser.uid)
+        });
         alert("Запрос отправлен!");
         input.value = "";
-        window.closeModal('addFriendModal');
-    } catch (e) { alert("Пользователь не найден"); }
+        UI.closeModal('addFriendModal');
+    } catch (e) {
+        alert("Пользователь не найден.");
+    }
 };
 
 window.acceptFriend = async (uid) => {
     const myUid = auth.currentUser.uid;
-    await updateDoc(doc(db, "users", myUid), { friends: arrayUnion(uid), pending: arrayRemove(uid) });
-    await updateDoc(doc(db, "users", uid), { friends: arrayUnion(myUid) });
+    try {
+        await updateDoc(doc(db, "users", myUid), {
+            friends: arrayUnion(uid),
+            pending: arrayRemove(uid)
+        });
+        await updateDoc(doc(db, "users", uid), {
+            friends: arrayUnion(myUid)
+        });
+    } catch (e) {
+        console.error(e);
+    }
 };
 
+// ==========================================
+// 3. СИСТЕМА СООБЩЕНИЙ (Telegram Style)
+// ==========================================
 window.openChat = (fUid, nick) => {
+    if (currentChatUid === fUid) return;
     currentChatUid = fUid;
-    document.getElementById("chatTitle").innerText = nick;
-    document.getElementById('mainSidebar').classList.remove('mobile-active');
     
-    const box = document.getElementById("chatBox");
-    box.innerHTML = "Загрузка...";
+    const chatBox = document.getElementById("chatBox");
+    const title = document.getElementById("chatTitle");
+    
+    title.innerText = nick;
+    chatBox.innerHTML = '<div class="loader">Синхронизация истории...</div>';
+    
     const chatId = [auth.currentUser.uid, fUid].sort().join("_");
 
     if (unsubscribeChat) unsubscribeChat();
+
     const q = query(collection(db, "privateMessages", chatId, "messages"), orderBy("timestamp"));
     unsubscribeChat = onSnapshot(q, (snap) => {
-        box.innerHTML = "";
-        snap.docs.forEach(d => {
-            const m = d.data();
+        chatBox.innerHTML = "";
+        if (snap.empty) {
+            chatBox.innerHTML = `<div class="empty-state"><h3>Начните общение с ${nick}</h3></div>`;
+        }
+        
+        snap.docs.forEach(docSnap => {
+            const m = docSnap.data();
             const isMe = m.senderUid === auth.currentUser.uid;
+            
             const div = document.createElement("div");
-            div.className = `msg ${isMe ? 'my' : ''}`;
-            div.innerText = m.text;
-            box.appendChild(div);
+            div.className = `msg ${isMe ? 'my' : 'their'}`;
+            
+            const time = m.timestamp ? m.timestamp.toDate().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '..:..';
+            
+            div.innerHTML = `
+                <div class="msg-text">${m.text}</div>
+                <div class="msg-footer" style="font-size: 9px; opacity: 0.6; text-align: right; margin-top: 4px;">${time}</div>
+            `;
+            chatBox.appendChild(div);
         });
-        box.scrollTop = box.scrollHeight;
+        chatBox.scrollTop = chatBox.scrollHeight;
     });
 };
 
-// ОТПРАВКА
 const sendMessage = async () => {
     const input = document.getElementById("chatInput");
-    if (!input.value.trim() || !currentChatUid) return;
+    const text = input.value.trim();
+    
+    if (!text || !currentChatUid) return;
+
     const chatId = [auth.currentUser.uid, currentChatUid].sort().join("_");
-    await addDoc(collection(db, "privateMessages", chatId, "messages"), {
-        senderUid: auth.currentUser.uid,
-        text: input.value,
-        timestamp: serverTimestamp()
-    });
-    input.value = "";
+    
+    try {
+        await addDoc(collection(db, "privateMessages", chatId, "messages"), {
+            senderUid: auth.currentUser.uid,
+            text: text,
+            timestamp: serverTimestamp()
+        });
+        input.value = "";
+    } catch (e) {
+        console.error("Ошибка отправки:", e);
+    }
 };
 
-// СЛУШАТЕЛЬ ВХОДА
+// ==========================================
+// 4. ИНИЦИАЛИЗАЦИЯ
+// ==========================================
 onAuthStateChanged(auth, (user) => {
-    if (!user) { window.location.href = "index.html"; return; }
+    if (!user) {
+        window.location.href = "index.html";
+        return;
+    }
+
     document.getElementById("userUid").innerText = user.uid;
 
     onSnapshot(doc(db, "users", user.uid), (snap) => {
-        const d = snap.data();
-        if (!d) return;
-        document.getElementById("userNick").innerText = d.nick || "Jarvis User";
-        
-        // Друзья
+        const data = snap.data();
+        if (!data) return;
+
+        document.getElementById("userNick").innerText = data.nick || "Jarvis User";
+        document.getElementById("userAvatarMain").innerText = (data.nick || "J")[0].toUpperCase();
+
+        // Рендер списка друзей
         const fList = document.getElementById("friendsList");
         fList.innerHTML = "";
-        (d.friends || []).forEach(async uid => {
+        (data.friends || []).forEach(async (uid) => {
             const fSnap = await getDoc(doc(db, "users", uid));
+            const fData = fSnap.data();
             const li = document.createElement("li");
-            li.innerText = fSnap.data()?.nick || "Друг";
-            li.onclick = () => window.openChat(uid, fSnap.data()?.nick);
+            li.innerHTML = `
+                <div class="avatar-circle" style="width:32px; height:32px; font-size:12px;">${(fData?.nick || 'U')[0]}</div>
+                <span>${fData?.nick || 'Пользователь'}</span>
+            `;
+            li.onclick = () => window.openChat(uid, fData?.nick);
             fList.appendChild(li);
         });
 
-        // Заявки
+        // Рендер входящих заявок
         const pList = document.getElementById("pendingList");
+        const pCount = document.getElementById("pendingCount");
+        const pending = data.pending || [];
+        pCount.innerText = pending.length;
         pList.innerHTML = "";
-        (d.pending || []).forEach(async uid => {
+        pending.forEach(async (uid) => {
             const pSnap = await getDoc(doc(db, "users", uid));
             const li = document.createElement("li");
-            li.innerHTML = `${pSnap.data()?.nick} <button onclick="window.acceptFriend('${uid}')">OK</button>`;
+            li.style = "padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; margin-top: 5px; display: flex; justify-content: space-between; align-items: center;";
+            li.innerHTML = `
+                <span style="font-size: 13px;">${pSnap.data()?.nick}</span>
+                <button onclick="window.acceptFriend('${uid}')" style="background: var(--success); border:none; color:white; padding: 4px 8px; border-radius: 4px; cursor:pointer;">OK</button>
+            `;
             pList.appendChild(li);
         });
     });
 });
 
-// Кнопки
-document.getElementById("sendMsgBtn").onclick = sendMessage;
-document.getElementById("chatInput").onkeydown = (e) => e.key === "Enter" && sendMessage();
+// Слушатели событий
+document.getElementById("sendMsgBtn").addEventListener('click', sendMessage);
+document.getElementById("chatInput").addEventListener('keydown', (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+});
 document.getElementById("logoutBtn").onclick = () => signOut(auth);
-
-console.log("Xenocord Engine Ready");
