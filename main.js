@@ -9,6 +9,7 @@ const db = getFirestore();
 let currentChatUid = null;
 let unsubscribeChat = null;
 
+// --- Состояние пользователя ---
 onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = "index.html"; return; }
     document.getElementById("userUid").innerText = user.uid;
@@ -21,41 +22,60 @@ onAuthStateChanged(auth, async (user) => {
     });
 });
 
+// --- Привязка событий ---
 document.addEventListener('DOMContentLoaded', () => {
-    // ОТПРАВКА ПО ENTER
+    const toggle = (id, show) => document.getElementById(id).style.display = show ? 'flex' : 'none';
+
+    // Enter для отправки
     document.getElementById('chatInput')?.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault();
-            sendMessage();
-        }
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
     });
 
-    // МОБИЛЬНОЕ МЕНЮ
-    const menuBtn = document.getElementById('menuToggle');
-    const sidebar = document.getElementById('sidebar');
-    menuBtn?.addEventListener('click', () => sidebar.classList.toggle('active'));
+    // Мобильное меню
+    document.getElementById('menuToggle')?.addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('active');
+    });
 
-    // МОДАЛКИ
-    const toggle = (id, show) => document.getElementById(id).style.display = show ? 'flex' : 'none';
+    // Кнопки открытия модалок
     document.getElementById('addFriendBtn')?.addEventListener('click', () => toggle('friendModal', true));
-    document.getElementById('profileBtn')?.addEventListener('click', () => toggle('profileModal', true));
-    
-    document.querySelectorAll('.secondary').forEach(b => b.onclick = () => {
-        document.getElementById('friendModal').style.display = 'none';
-        document.getElementById('profileModal').style.display = 'none';
+    document.getElementById('profileBtn')?.addEventListener('click', () => {
+        document.getElementById('editNickInput').value = document.getElementById('userNick').innerText;
+        toggle('profileModal', true);
+    });
+
+    // Универсальное закрытие модалок
+    document.querySelectorAll('.close-modal-btn').forEach(btn => {
+        btn.onclick = () => {
+            toggle('friendModal', false);
+            toggle('profileModal', false);
+        };
     });
 
     document.getElementById('sendMsgBtn')?.addEventListener('click', sendMessage);
     document.getElementById('logoutBtn')?.addEventListener('click', () => signOut(auth));
-    document.getElementById('copyUidBox')?.onclick = () => {
+    
+    document.getElementById('saveProfileBtn')?.addEventListener('click', async () => {
+        const nick = document.getElementById('editNickInput').value.trim();
+        if (nick) {
+            await updateDoc(doc(db, "users", auth.currentUser.uid), { nick });
+            toggle('profileModal', false);
+        }
+    });
+
+    document.getElementById('confirmSendRequest')?.addEventListener('click', sendFriendRequest);
+    document.getElementById('copyUidBox')?.addEventListener('click', () => {
         navigator.clipboard.writeText(document.getElementById('userUid').innerText);
         alert("UID скопирован!");
-    };
+    });
 });
 
+// --- Функции логики ---
 async function renderFriends(data) {
     const fList = document.getElementById("friendsList");
+    const pList = document.getElementById("pendingList");
     fList.innerHTML = "";
+    pList.innerHTML = "";
+
     (data.friends || []).forEach(async (fUid) => {
         const fSnap = await getDoc(doc(db, "users", fUid));
         const li = document.createElement("li");
@@ -66,11 +86,35 @@ async function renderFriends(data) {
         };
         fList.appendChild(li);
     });
+
+    (data.pending || []).forEach(async (pUid) => {
+        const pSnap = await getDoc(doc(db, "users", pUid));
+        const li = document.createElement("li");
+        li.innerHTML = `<span>${pSnap.data()?.nick}</span> <button class="mini-ok" style="background:var(--accent); color:white; padding:4px 8px; border-radius:5px; font-size:10px;">OK</button>`;
+        li.querySelector('button').onclick = (e) => { e.stopPropagation(); acceptFriend(pUid); };
+        pList.appendChild(li);
+    });
+}
+
+async function sendFriendRequest() {
+    const val = document.getElementById("friendUidInput").value.trim();
+    if (!val || val === auth.currentUser.uid) return;
+    try {
+        await updateDoc(doc(db, "users", val), { pending: arrayUnion(auth.currentUser.uid) });
+        alert("Запрос отправлен!");
+        document.getElementById('friendModal').style.display = 'none';
+    } catch (e) { alert("Ошибка: пользователь не найден"); }
+}
+
+async function acceptFriend(fUid) {
+    const myUid = auth.currentUser.uid;
+    await updateDoc(doc(db, "users", myUid), { friends: arrayUnion(fUid), pending: arrayRemove(fUid) });
+    await updateDoc(doc(db, "users", fUid), { friends: arrayUnion(myUid) });
 }
 
 async function openChat(fUid, nick) {
     currentChatUid = fUid;
-    document.getElementById("chatTitle").innerText = "Чат с: " + nick;
+    document.getElementById("chatTitle").innerText = nick;
     const chatId = [auth.currentUser.uid, fUid].sort().join("_");
     if (unsubscribeChat) unsubscribeChat();
     const q = query(collection(db, "privateMessages", chatId, "messages"), orderBy("timestamp"));
