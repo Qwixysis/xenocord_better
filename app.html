@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Xenocord</title>
-    <link rel="stylesheet" href="style.css?v=5.0">
+    <link rel="stylesheet" href="style.css?v=10.0">
 </head>
 <body>
     <div class="app-container">
         <aside class="sidebar" id="sidebar">
             <div class="user-card">
-                <div class="user-info-box">
+                <div class="user-info">
                     <span class="status-dot"></span>
                     <h3 id="userNick">Загрузка...</h3>
                 </div>
@@ -20,12 +20,13 @@
             <div class="sidebar-content">
                 <div class="label">ДРУЗЬЯ</div>
                 <ul id="friendsList"></ul>
+                
                 <div class="label">ЗАПРОСЫ</div>
                 <ul id="pendingList"></ul>
             </div>
 
             <div class="sidebar-footer">
-                <button id="addFriendBtn">Добавить друга</button>
+                <button id="addFriendBtn">+ Добавить друга</button>
                 <button id="logoutBtn" class="danger">Выход</button>
                 <div class="uid-section" id="copyUidBox">
                     <small>Твой UID (кликни)</small>
@@ -37,13 +38,13 @@
         <main class="chat-main">
             <header id="chatHeader">
                 <button class="mobile-menu-btn" id="menuToggle">☰</button>
-                <span id="chatTitle">Выберите чат</span>
+                <span id="chatTitle">Выберите чат в списке</span>
             </header>
             
             <div id="chatBox"></div>
             
             <div class="chat-input-row">
-                <input type="text" id="chatInput" placeholder="Напишите сообщение...">
+                <input type="text" id="chatInput" placeholder="Напишите сообщение..." autocomplete="off">
                 <button id="sendMsgBtn">GO</button>
             </div>
         </main>
@@ -52,21 +53,23 @@
     <div id="friendModal" class="modal">
         <div class="modal-content">
             <h3>Добавить друга</h3>
-            <input type="text" id="friendUidInput" placeholder="Введите UID">
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">Введите UID пользователя, которого хотите добавить.</p>
+            <input type="text" id="friendUidInput" placeholder="UID пользователя...">
             <div class="modal-btns">
-                <button id="confirmSendRequest">Отправить</button>
-                <button id="closeFriendModal" class="secondary">Закрыть</button>
+                <button id="confirmSendRequest">Отправить запрос</button>
+                <button class="secondary close-modal-btn">Отмена</button>
             </div>
         </div>
     </div>
 
     <div id="profileModal" class="modal">
         <div class="modal-content">
-            <h3>Профиль</h3>
-            <input type="text" id="editNickInput" placeholder="Новый ник">
+            <h3>Настройки профиля</h3>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">Измените свой никнейм в Xenocord.</p>
+            <input type="text" id="editNickInput" placeholder="Ваш новый ник...">
             <div class="modal-btns">
                 <button id="saveProfileBtn">Сохранить</button>
-                <button id="closeProfileModal" class="secondary">Отмена</button>
+                <button class="secondary close-modal-btn">Закрыть</button>
             </div>
         </div>
     </div>
