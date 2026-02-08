@@ -1,47 +1,29 @@
 import { auth } from "./firebase.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { 
-    onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, browserSessionPersistence 
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { 
-    getFirestore, doc, getDoc, updateDoc, arrayUnion, arrayRemove,
-    collection, addDoc, serverTimestamp, onSnapshot, query, orderBy
+  getFirestore, doc, getDoc, updateDoc, arrayUnion, arrayRemove,
+  collection, addDoc, serverTimestamp, onSnapshot, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const db = getFirestore();
 let currentChatUid = null;
 let unsubscribeChat = null;
 
-// --- УПРАВЛЕНИЕ СЕССИЕЙ ---
-window.initAuth = async (email, pass, remember) => {
-    const persistence = remember ? browserLocalPersistence : browserSessionPersistence;
-    await setPersistence(auth, persistence);
-    // Дальше вызывай signInWithEmailAndPassword в своем auth.js
-};
-
-// --- ОСНОВНОЙ ИНТЕРФЕЙС ---
 onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-        if (!window.location.href.includes("index.html")) window.location.href = "index.html";
-        return;
-    }
-    const uidEl = document.getElementById("userUid");
-    if (uidEl) uidEl.innerText = user.uid;
-    
+    if (!user) { window.location.href = "index.html"; return; }
+    document.getElementById("userUid").innerText = user.uid;
     onSnapshot(doc(db, "users", user.uid), (snap) => {
         const data = snap.data();
         if (data) {
-            const nickEl = document.getElementById("userNick");
-            if (nickEl) nickEl.innerText = data.nick || "Юзер";
+            document.getElementById("userNick").innerText = data.nick || "Юзер";
             renderFriends(data);
         }
     });
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    const chatInput = document.getElementById('chatInput');
-    
     // ОТПРАВКА ПО ENTER
-    chatInput?.addEventListener('keydown', (e) => {
+    document.getElementById('chatInput')?.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             sendMessage();
@@ -55,28 +37,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // МОДАЛКИ
     const toggle = (id, show) => document.getElementById(id).style.display = show ? 'flex' : 'none';
-    
     document.getElementById('addFriendBtn')?.addEventListener('click', () => toggle('friendModal', true));
-    document.getElementById('profileBtn')?.addEventListener('click', () => {
-        document.getElementById('editNickInput').value = document.getElementById('userNick').innerText;
-        toggle('profileModal', true);
-    });
-
-    document.querySelectorAll('.secondary').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const modal = e.target.closest('.modal');
-            if (modal) modal.style.display = 'none';
-        });
+    document.getElementById('profileBtn')?.addEventListener('click', () => toggle('profileModal', true));
+    
+    document.querySelectorAll('.secondary').forEach(b => b.onclick = () => {
+        document.getElementById('friendModal').style.display = 'none';
+        document.getElementById('profileModal').style.display = 'none';
     });
 
     document.getElementById('sendMsgBtn')?.addEventListener('click', sendMessage);
     document.getElementById('logoutBtn')?.addEventListener('click', () => signOut(auth));
+    document.getElementById('copyUidBox')?.onclick = () => {
+        navigator.clipboard.writeText(document.getElementById('userUid').innerText);
+        alert("UID скопирован!");
+    };
 });
 
-// --- ЧАТ И ДРУЗЬЯ (БЕЗ ИЗМЕНЕНИЙ) ---
 async function renderFriends(data) {
     const fList = document.getElementById("friendsList");
-    if (!fList) return;
     fList.innerHTML = "";
     (data.friends || []).forEach(async (fUid) => {
         const fSnap = await getDoc(doc(db, "users", fUid));
