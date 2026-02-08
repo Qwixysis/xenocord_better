@@ -16,6 +16,10 @@ onAuthStateChanged(auth, async user => {
   } else {
     document.getElementById("welcome").textContent = 
       `Привет, ${user.displayName || user.email}!`;
+
+    // UID внизу слева
+    document.getElementById("userUid").textContent = user.uid;
+
     loadFriends(user.uid);
   }
 });
@@ -120,12 +124,15 @@ window.viewFriendProfile = async function(uid) {
     const data = snap.data();
     document.getElementById("friendProfileEmail").textContent = data.email;
     document.getElementById("friendProfileNick").textContent = data.nick;
+    document.getElementById("friendProfileUid").textContent = uid;
+
     const photoEl = document.getElementById("friendProfilePhoto");
     if (data.photoURL) {
       photoEl.innerHTML = `<img src="${data.photoURL}" width="100" height="100" style="border-radius:50%;">`;
     } else {
       photoEl.innerHTML = `<div style="width:100px;height:100px;border-radius:50%;background:#444;display:flex;align-items:center;justify-content:center;color:#eee;font-size:32px;">?</div>`;
     }
+
     document.getElementById("friendProfileModal").style.display = "block";
   }
 };
@@ -144,12 +151,15 @@ window.openProfileModal = async function() {
     const data = snap.data();
     document.getElementById("profileEmail").textContent = data.email;
     document.getElementById("profileNick").textContent = data.nick;
+    document.getElementById("profileUid").textContent = user.uid;
+
     const photoEl = document.getElementById("profilePhoto");
     if (data.photoURL) {
       photoEl.innerHTML = `<img src="${data.photoURL}" width="100" height="100" style="border-radius:50%;">`;
     } else {
       photoEl.innerHTML = `<div style="width:100px;height:100px;border-radius:50%;background:#444;display:flex;align-items:center;justify-content:center;color:#eee;font-size:32px;">?</div>`;
     }
+
     document.getElementById("profileModal").style.display = "block";
   }
 };
