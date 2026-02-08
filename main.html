@@ -3,182 +3,77 @@
 <head>
   <meta charset="UTF-8">
   <title>Xenocord</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <header>
-    <h1 style="display:inline-block; margin-right:20px;">Xenocord</h1>
-    <p id="welcome" style="display:inline-block;"></p>
-    <button onclick="openProfileModal()">Мой профиль</button>
-    <button onclick="logout()">Выйти</button>
-    <button onclick="openSettingsModal()">⚙️</button>
-  </header>
-
-  <!-- Друзья -->
-  <section>
-    <h2>Друзья</h2>
-    <ul id="friendsList"></ul>
-    <h3>Заявки</h3>
-    <ul id="pendingList"></ul>
-    <button onclick="openFriendModal()">Добавить друга</button>
-  </section>
-
-  <!-- Чат -->
-  <section>
-    <h2>Чат</h2>
-    <div id="chatBox"></div>
-    <div style="display:flex; align-items:center; gap:5px;">
-      <input id="chatInput" type="text" placeholder="Сообщение" style="flex:1;">
-      <button onclick="sendMessage()">Отправить</button>
-    </div>
-  </section>
-
-  <!-- Модалка добавления друга -->
-  <div id="friendModal" class="modal">
-    <div class="modal-content">
-      <span onclick="closeFriendModal()" class="close">&times;</span>
-      <h2>Добавить друга</h2>
-      <input id="friendUid" type="text" placeholder="UID друга">
-      <p id="friendError" style="color:red"></p>
-      <button onclick="sendFriendRequest()">Отправить заявку</button>
-    </div>
-  </div>
-
-  <!-- Мой профиль -->
-  <div id="profileModal" class="modal">
-    <div class="modal-content">
-      <span onclick="closeProfileModal()" class="close">&times;</span>
-      <h2>Мой профиль</h2>
-      <div id="profilePhoto" style="width:100px;height:100px;border-radius:50%;background:#444;display:flex;align-items:center;justify-content:center;color:#eee;font-size:32px;">?</div>
-      <p><b>Email:</b> <span id="profileEmail"></span></p>
-      <p><b>Ник:</b> <span id="profileNick"></span></p>
-      <p><b>UID:</b> <span id="profileUid"></span></p>
-    </div>
-  </div>
-
-  <!-- Профиль друга -->
-  <div id="friendProfileModal" class="modal">
-    <div class="modal-content">
-      <span onclick="closeFriendProfileModal()" class="close">&times;</span>
-      <h2>Профиль друга</h2>
-      <div id="friendProfilePhoto" style="width:100px;height:100px;border-radius:50%;background:#444;display:flex;align-items:center;justify-content:center;color:#eee;font-size:32px;">?</div>
-      <p><b>Email:</b> <span id="friendProfileEmail"></span></p>
-      <p><b>Ник:</b> <span id="friendProfileNick"></span></p>
-      <p><b>UID:</b> <span id="friendProfileUid"></span></p>
-    </div>
-  </div>
-
-  <!-- Настройки -->
-  <div id="settingsModal" class="modal">
-    <div class="modal-content">
-      <span onclick="closeSettingsModal()" class="close">&times;</span>
-      <h2>Настройки</h2>
-      <button onclick="setTheme('dark')">Тёмная тема</button>
-      <button onclick="setTheme('light')">Светлая тема</button>
-    </div>
-  </div>
-
-  <!-- UID внизу слева -->
-  <div id="userUidDisplay" style="position:fixed; bottom:10px; left:10px; font-size:14px; color:#aaa; background:rgba(0,0,0,0.5); padding:5px; border-radius:5px;">
-    UID: <span id="userUid"></span>
-  </div>
-
-  <!-- Стили -->
   <style>
     body {
-      background: #121212;
-      color: #eee;
       font-family: Arial, sans-serif;
-      margin:0;
-      padding:0;
-    }
-    header {
-      background: #1f1f1f;
-      padding: 10px;
-    }
-    button {
-      background: #333;
-      color: #eee;
-      border: none;
-      padding: 10px 15px;
-      margin: 5px;
-      cursor: pointer;
-      font-size: 1rem;
-    }
-    button:hover {
-      background: #555;
-    }
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1;
-      left: 0; top: 0;
-      width: 100%; height: 100%;
-      background-color: rgba(0,0,0,0.7);
-    }
-    .modal-content {
-      background: #1f1f1f;
-      margin: 10% auto;
-      padding: 20px;
-      width: 90%;
-      max-width: 400px;
-      border-radius: 8px;
-    }
-    .close {
-      float: right;
-      font-size: 24px;
-      cursor: pointer;
-    }
-    #chatBox {
-      background: #1f1f1f;
-      padding: 10px;
-      height: 40vh;
-      overflow-y: auto;
-      border-radius: 8px;
-    }
-    #friendsList, #pendingList {
-      list-style: none;
+      background-color: #1e1e1e;
+      color: #fff;
+      margin: 0;
       padding: 0;
     }
-    #friendsList li, #pendingList li {
+    .container {
+      width: 600px;
+      margin: 50px auto;
+      background: #2c2c2c;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: none;
+      border-radius: 4px;
+    }
+    input {
+      background: #3c3c3c;
+      color: #fff;
+    }
+    button {
+      background: #0078d7;
+      color: #fff;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #005fa3;
+    }
+    .chat {
+      margin-top: 20px;
+      background: #3c3c3c;
+      padding: 10px;
+      border-radius: 4px;
+      height: 200px;
+      overflow-y: auto;
+    }
+    .message {
       margin: 5px 0;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      padding: 8px;
+      background: #4c4c4c;
+      border-radius: 4px;
     }
   </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Xenocord</h2>
+    <div id="auth-section">
+      <input type="email" id="email" placeholder="Email">
+      <input type="password" id="password" placeholder="Password">
+      <button onclick="loginUser()">Войти</button>
+      <button onclick="logout()">Выйти</button>
+    </div>
 
-  <!-- Подключение скриптов -->
+    <div id="chat-section">
+      <input type="text" id="chatInput" placeholder="Сообщение">
+      <button onclick="sendMessage()">Отправить</button>
+      <div class="chat" id="chatBox"></div>
+    </div>
+  </div>
+
+  <!-- Подключение модулей -->
   <script type="module" src="main.js"></script>
-
-  <!-- JS для Enter и настроек -->
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const chatInput = document.getElementById("chatInput");
-      chatInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          sendMessage();
-        }
-      });
-    });
-
-    function openSettingsModal() {
-      document.getElementById("settingsModal").style.display = "block";
-    }
-    function closeSettingsModal() {
-      document.getElementById("settingsModal").style.display = "none";
-    }
-    function setTheme(theme) {
-      if (theme === "dark") {
-        document.body.style.background = "#121212";
-        document.body.style.color = "#eee";
-      } else {
-        document.body.style.background = "#f5f5f5";
-        document.body.style.color = "#111";
-      }
-    }
-  </script>
+  <script type="module" src="friends.js"></script>
+  <script type="module" src="settings.js"></script>
+  <script type="module" src="chat.js"></script>
 </body>
 </html>
