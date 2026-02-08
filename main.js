@@ -1,8 +1,8 @@
 import { auth } from "./firebase.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { onAuthStateChanged, signOut, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { 
   getFirestore, doc, getDoc, updateDoc, arrayUnion, arrayRemove,
-  collection, addDoc, serverTimestamp, onSnapshot, query, orderBy
+  collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, setDoc
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const db = getFirestore();
@@ -17,13 +17,45 @@ onAuthStateChanged(auth, async user => {
     document.getElementById("welcome").textContent = 
       `Привет, ${user.displayName || user.email}!`;
 
-    // UID внизу слева
     const uidEl = document.getElementById("userUid");
     if (uidEl) uidEl.textContent = user.uid;
 
     loadFriends(user.uid);
   }
 });
+
+// --- Регистрация с капчей ---
+window.registerWithCaptcha = async function(email, password, nick) {
+  try {
+    grecaptcha.ready(async () => {
+      const token = await grecaptcha.execute("6Lf9K2QsAAAAAO68PzfXXON-gOFPPOwXzwPANlxm", { action: "register" });
+
+      const response = await fetch("/verify-captcha", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token })
+      });
+      const data = await response.json();
+
+      if (data.success) {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        await setDoc(doc(db, "users", user.uid), {
+          email: email,
+          nick: nick,
+          friends: [],
+          pending: [],
+          requestsSent: []
+        });
+        console.log("User registered:", user.uid);
+      } else {
+        alert("Капча не пройдена!");
+      }
+    });
+  } catch (error) {
+    console.error("Registration error:", error.message);
+  }
+};
 
 // --- Друзья ---
 window.openFriendModal = function() {
@@ -75,8 +107,6 @@ window.acceptRequest = async function(friendUid) {
   });
 
   loadFriends(currentUid);
-};
-
 async function loadFriends(uid) {
   const userSnap = await getDoc(doc(db, "users", uid));
   if (userSnap.exists()) {
