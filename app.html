@@ -3,86 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xenocord</title>
+    <title>Xenocord | Jarvis Edition</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="app-container">
         <aside class="sidebar">
             <div class="user-card">
-                <h3 id="userNick">...</h3>
-                <button onclick="openModal('settingsModal')" style="background:transparent; font-size:18px;">⚙️</button>
+                <span id="userNick" style="font-weight: bold; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 180px;">...</span>
+                <button onclick="window.openModal('settingsModal')" style="background:none; border:none; cursor:pointer; font-size:18px; color:var(--text-muted);">⚙️</button>
             </div>
             <div class="sidebar-content">
-                <div class="label">Друзья</div>
+                <div class="label">Личные сообщения</div>
                 <ul id="friendsList"></ul>
-                <div class="label">Заявки</div>
+                <div class="label" style="margin-top:20px;">Заявки в друзья</div>
                 <ul id="pendingList"></ul>
             </div>
-            <div class="sidebar-footer">
-                <button class="primary" onclick="openModal('addFriendModal')">Добавить друга</button>
-                <div class="uid-section" id="copyUidBox">
-                    <small>UID (кликни)</small><br>
-                    <code id="userUid">...</code>
+            <div class="sidebar-footer" style="padding: 15px; background: rgba(0,0,0,0.1);">
+                <button class="btn-primary" onclick="window.openModal('addFriendModal')" style="margin-bottom:10px;">Добавить друга</button>
+                <div id="copyUidBox" style="font-size: 10px; cursor: pointer; color: var(--text-muted); text-align: center;">
+                    UID: <span id="userUid">...</span>
                 </div>
             </div>
         </aside>
 
         <main class="chat-main">
-            <header id="chatHeader">
-                <span id="chatTitle" style="font-weight: 800;">Выберите чат</span>
-            </header>
+            <header id="chatHeader"><strong id="chatTitle">Выберите чат</strong></header>
             <div id="chatBox"></div>
             <div class="chat-input-row">
-                <input type="text" id="chatInput" placeholder="Напишите сообщение..." autocomplete="off">
-                <button id="sendMsgBtn" class="primary">GO</button>
+                <input type="text" id="chatInput" placeholder="Написать..." autocomplete="off">
+                <button id="sendMsgBtn" class="btn-primary" style="width: auto;">GO</button>
             </div>
         </main>
     </div>
 
-    <div id="settingsModal" class="modal"><div class="modal-content">
-        <div class="settings-layout">
-            <div class="settings-menu">
-                <div class="menu-item active" onclick="showTab('tabProfile')">Профиль</div>
-                <div class="menu-item" onclick="showTab('tabAccount')">Аккаунт</div>
+    <div id="settingsModal" class="modal">
+        <div class="settings-window">
+            <div class="settings-left">
+                <div class="label" style="margin-bottom:10px;">Настройки</div>
+                <div class="nav-item active" onclick="window.showTab('tabProfile', this)">Профиль</div>
+                <div class="nav-item" onclick="window.showTab('tabAccount', this)">Аккаунт</div>
             </div>
-            <div class="settings-content">
-                <div id="tabProfile" class="settings-tab">
-                    <h4>Настройки профиля</h4>
-                    <div class="input-group">
-                        <label>Ссылка на аватар</label>
-                        <input type="text" id="avaInput" placeholder="https://...">
+            <div class="settings-right">
+                <button class="btn-close" onclick="window.closeModal('settingsModal')">✕</button>
+                
+                <div id="tabProfile" class="settings-tab active">
+                    <h2 style="margin-bottom: 25px;">Настройки профиля</h2>
+                    <div class="field">
+                        <label>Ссылка на аватарку</label>
+                        <input type="text" id="avaInput" placeholder="https://example.com/image.jpg">
                     </div>
-                    <div class="input-group">
-                        <label>Никнейм</label>
+                    <div class="field">
+                        <label>Отображаемое имя (Ник)</label>
                         <input type="text" id="nickInput">
                     </div>
-                    <div class="input-group">
+                    <div class="field">
                         <label>О себе</label>
-                        <textarea id="bioInput" rows="3"></textarea>
+                        <textarea id="bioInput" rows="4" placeholder="Расскажите что-нибудь о себе..."></textarea>
                     </div>
-                    <button class="primary" onclick="saveProfile()">Сохранить</button>
+                    <button class="btn-primary" onclick="window.saveProfile()">Сохранить изменения</button>
                 </div>
-                <div id="tabAccount" class="settings-tab" style="display:none;">
-                    <h4>Аккаунт</h4>
-                    <p style="font-size:12px; color:var(--text-muted);">Управление безопасностью и выходом</p>
-                    <button class="danger" onclick="logout()">Выйти из аккаунта</button>
+
+                <div id="tabAccount" class="settings-tab">
+                    <h2 style="margin-bottom: 25px;">Управление аккаунтом</h2>
+                    <p style="color: var(--text-muted); margin-bottom: 20px; font-size:14px;">Здесь вы можете выйти из своей учетной записи.</p>
+                    <button id="logoutBtn" class="btn-danger">Выйти из аккаунта</button>
                 </div>
             </div>
         </div>
-        <button class="secondary" onclick="closeModal('settingsModal')">Закрыть</button>
-    </div></div>
+    </div>
 
-    <div id="friendProfileModal" class="modal"><div class="modal-content" style="text-align:center;">
+    <div id="friendProfileModal" class="modal"><div class="modal-content" style="background:var(--bg-sidebar); padding:40px; border-radius:12px; text-align:center; min-width:320px; position:relative;">
+        <button class="btn-close" onclick="window.closeModal('friendProfileModal')">✕</button>
         <div id="friendProfileInfo"></div>
-        <button class="secondary" onclick="closeModal('friendProfileModal')" style="margin-top:20px;">Закрыть</button>
+        <button class="btn-secondary" onclick="window.closeModal('friendProfileModal')">Закрыть</button>
     </div></div>
 
-    <div id="addFriendModal" class="modal"><div class="modal-content">
-        <h3>Добавить друга</h3>
-        <input type="text" id="friendUidInput" placeholder="Введите UID">
-        <button class="primary" onclick="sendFriendRequest()">Отправить</button>
-        <button class="secondary" onclick="closeModal('addFriendModal')">Отмена</button>
+    <div id="addFriendModal" class="modal"><div class="modal-content" style="background:var(--bg-sidebar); padding:30px; border-radius:12px; width:350px;">
+        <h3>Добавить в друзья</h3>
+        <p style="font-size:12px; color:var(--text-muted); margin: 10px 0;">Введите UID пользователя, которого хотите добавить.</p>
+        <input type="text" id="friendUidInput" placeholder="UID пользователя">
+        <button class="btn-primary" style="margin-top:15px;" onclick="window.sendFriendRequest()">Отправить запрос</button>
+        <button class="btn-secondary" onclick="window.closeModal('addFriendModal')">Отмена</button>
     </div></div>
 
     <script type="module" src="main.js"></script>
