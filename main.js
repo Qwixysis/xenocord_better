@@ -9,86 +9,105 @@ const db = getFirestore();
 let currentChatUid = null;
 let unsubscribeChat = null;
 
-// Делаем функции глобальными для HTML
+// ФУНКЦИИ ГЛОБАЛЬНОГО ДОСТУПА
 window.openModal = (id) => {
-    const el = document.getElementById(id);
-    if (el) el.classList.add('active');
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.add('active');
 };
 
 window.closeModal = (id) => {
-    const el = document.getElementById(id);
-    if (el) el.classList.remove('active');
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.remove('active');
 };
 
-window.showTab = (tabName) => {
-    document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
-    document.querySelectorAll('.settings-tab').forEach(t => t.style.display = 'none');
+window.showTab = (tabId, btn) => {
+    const tabs = document.querySelectorAll('.settings-tab');
+    const navs = document.querySelectorAll('.nav-item');
     
-    const activeTab = document.getElementById(tabName);
-    const activeMenu = document.querySelector(`[onclick="showTab('${tabName}')"]`);
+    tabs.forEach(t => t.classList.remove('active'));
+    navs.forEach(n => n.classList.remove('active'));
     
-    if (activeTab) activeTab.style.display = 'block';
-    if (activeMenu) activeMenu.classList.add('active');
+    const targetTab = document.getElementById(tabId);
+    if (targetTab) targetTab.classList.add('active');
+    if (btn) btn.classList.add('active');
 };
 
-// АВТОРИЗАЦИЯ
-onAuthStateChanged(auth, (user) => {
-    if (!user) { window.location.href = "index.html"; return; }
-    
-    const uidEl = document.getElementById("userUid");
-    if (uidEl) uidEl.innerText = user.uid;
-
-    onSnapshot(doc(db, "users", user.uid), (snap) => {
-        const d = snap.data();
-        if (d) {
-            const nickEl = document.getElementById("userNick");
-            if (nickEl) nickEl.innerText = d.nick || "Jarvis";
-            
-            // Заполняем поля в настройках, если они есть
-            if (document.getElementById('nickInput')) document.getElementById('nickInput').value = d.nick || "";
-            if (document.getElementById('bioInput')) document.getElementById('bioInput').value = d.bio || "";
-            if (document.getElementById('avaInput')) document.getElementById('avaInput').value = d.ava || "";
-            
-            renderFriends(d);
-            renderPending(d);
-        }
-    });
-});
-
-// ПРОФИЛЬ
+// СОХРАНЕНИЕ ПРОФИЛЯ
 window.saveProfile = async () => {
     const user = auth.currentUser;
     if (!user) return;
-    const nick = document.getElementById('nickInput')?.value;
-    const bio = document.getElementById('bioInput')?.value;
-    const ava = document.getElementById('avaInput')?.value;
     
-    await updateDoc(doc(db, "users", user.uid), { nick, bio, ava });
-    alert("Профиль обновлен!");
-    window.closeModal('settingsModal');
-};
-
-window.viewFriend = async (uid) => {
-    const snap = await getDoc(doc(db, "users", uid));
-    if (snap.exists()) {
-        const d = snap.data();
-        const infoBox = document.getElementById("friendProfileInfo");
-        if (infoBox) {
-            infoBox.innerHTML = `
-                <img src="${d.ava || ''}" class="avatar-preview" onerror="this.src='https://ui-avatars.com/api/?name=${d.nick}'">
-                <h2>${d.nick || 'Друг'}</h2>
-                <p style="color:var(--text-muted); margin: 10px 0;">${d.bio || 'Нет описания'}</p>
-                <div style="font-size:10px; background:var(--bg-dark); padding:5px; border-radius:5px;">UID: ${uid}</div>
-            `;
-            window.openModal('friendProfileModal');
-        }
+    const nick = document.getElementById('nickInput').value;
+    const bio = document.getElementById('bioInput').value;
+    const ava = document.getElementById('avaInput').value;
+    
+    try {
+        await updateDoc(doc(db, "users", user.uid), {
+            nick: nick,
+            bio: bio,
+            ava: ava
+        });
+        alert("Профиль успешно сохранен!");
+    } catch (e) {
+        console.error("Ошибка сохранения:", e);
     }
 };
 
-// ЧАТ
+// ПРОСМОТР ПРОФИЛЯ ДРУГА
+window.viewFriend = async (uid) => {
+    try {
+        const snap = await getDoc(doc(db, "users", uid));
+        if (snap.exists()) {
+            const d = snap.data();
+            const info = document.getElementById("friendProfileInfo");
+            if (info) {
+                info.innerHTML = `
+                    <img src="${d.ava || ''}" class="avatar-preview" onerror="this.src='https://ui-avatars.com/api/?name=${d.nick}'">
+                    <h2 style="margin-bottom:10px;">${d.nick || 'Пользователь'}</h2>
+                    <p style="color:var(--text-muted); margin-bottom:15px;">${d.bio || 'Описание отсутствует'}</p>
+                    <div style="font-size:10px; background:rgba(0,0,0,0.3); padding:8px; border-radius:4px;">UID: ${uid}</div>
+                `;
+                window.openModal('friendProfileModal');
+            }
+        }
+    } catch (e) {
+        console.error("Ошибка при просмотре друга:", e);
+    }
+};
+
+// УДАЛЕНИЕ СООБЩЕНИЯ
+window.deleteMsg = async (id) => {
+    if (!currentChatUid) return;
+    const chatId = [auth.currentUser.uid, currentChatUid].sort().join("_");
+    try {
+        await deleteDoc(doc(db, "privateMessages", chatId, "messages", id));
+    } catch (e) {
+        console.error("Ошибка удаления:", e);
+    }
+};
+
+// УДАЛЕНИЕ ДРУГА
+window.deleteFriend = async (uid) => {
+    if (confirm("Вы уверены, что хотите удалить этого друга?")) {
+        await updateDoc(doc(db, "users", auth.currentUser.uid), { friends: arrayRemove(uid) });
+    }
+};
+
+// ПРИНЯТИЕ ЗАЯВКИ
+window.acceptFriend = async (uid) => {
+    await updateDoc(doc(db, "users", auth.currentUser.uid), {
+        friends: arrayUnion(uid),
+        pending: arrayRemove(uid)
+    });
+    await updateDoc(doc(db, "users", uid), {
+        friends: arrayUnion(auth.currentUser.uid)
+    });
+};
+
+// ОТПРАВКА СООБЩЕНИЯ
 async function sendMsg() {
     const input = document.getElementById('chatInput');
-    const val = input?.value.trim();
+    const val = input.value.trim();
     if (!val || !currentChatUid) return;
 
     const chatId = [auth.currentUser.uid, currentChatUid].sort().join("_");
@@ -100,51 +119,44 @@ async function sendMsg() {
     input.value = "";
 }
 
-window.openChat = async (fUid, nick) => {
-    if (currentChatUid === fUid) return;
+// ОТКРЫТИЕ ЧАТА
+async function openChat(fUid, nick) {
     currentChatUid = fUid;
-    
-    const titleEl = document.getElementById("chatTitle");
-    if (titleEl) titleEl.innerText = nick;
-
+    document.getElementById("chatTitle").innerText = nick;
     const box = document.getElementById("chatBox");
-    if (box) box.innerHTML = "";
-
-    const chatId = [auth.currentUser.uid, fUid].sort().join("_");
-
-    if (unsubscribeChat) unsubscribeChat();
-    const q = query(collection(db, "privateMessages", chatId, "messages"), orderBy("timestamp"));
+    box.innerHTML = "";
     
+    const chatId = [auth.currentUser.uid, fUid].sort().join("_");
+    if (unsubscribeChat) unsubscribeChat();
+
+    const q = query(collection(db, "privateMessages", chatId, "messages"), orderBy("timestamp"));
     unsubscribeChat = onSnapshot(q, (snap) => {
         const dbIds = snap.docs.map(d => d.id);
         Array.from(box.children).forEach(el => { if (!dbIds.includes(el.id)) el.remove(); });
-        
+
         snap.docChanges().forEach(change => {
             if (change.type === "added") {
-                const d = change.doc;
-                const data = d.data();
-                const isMe = data.senderUid === auth.currentUser.uid;
-                
-                let time = data.timestamp ? data.timestamp.toDate().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-                
+                const d = change.doc.data();
+                const isMe = d.senderUid === auth.currentUser.uid;
                 const div = document.createElement("div");
-                div.id = d.id;
+                div.id = change.doc.id;
                 div.className = `msg ${isMe ? 'my' : ''}`;
+                
+                let timeStr = d.timestamp ? d.timestamp.toDate().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+                
                 div.innerHTML = `
-                    <div class="msg-content">${data.text}</div>
-                    <div class="msg-footer">${time}</div>
-                    ${isMe ? `<div class="msg-actions">
-                        <button onclick="window.deleteMsg('${d.id}')">✕</button>
-                    </div>` : ''}
+                    <div class="msg-content">${d.text}</div>
+                    <div class="msg-footer">${timeStr}</div>
+                    ${isMe ? `<div class="msg-actions"><button onclick="window.deleteMsg('${change.doc.id}')">✕</button></div>` : ''}
                 `;
                 box.appendChild(div);
                 box.scrollTop = box.scrollHeight;
             }
         });
     });
-};
+}
 
-// СПИСКИ
+// РЕНДЕР СПИСКОВ
 async function renderFriends(data) {
     const list = document.getElementById("friendsList");
     if (!list) return;
@@ -156,10 +168,10 @@ async function renderFriends(data) {
         li.innerHTML = `
             <span>${fData?.nick || 'Друг'}</span>
             <div class="friend-actions">
-                <button class="action-btn" onclick="event.stopPropagation(); window.viewFriend('${fUid}')">📋</button>
-                <button class="action-btn del" onclick="event.stopPropagation(); window.deleteFriend('${fUid}')">✕</button>
+                <button onclick="event.stopPropagation(); window.viewFriend('${fUid}')" style="background:none; color:white; border:none; cursor:pointer; font-size:16px;">📋</button>
+                <button onclick="event.stopPropagation(); window.deleteFriend('${fUid}')" style="background:none; color:var(--danger); border:none; cursor:pointer; font-size:16px; margin-left:10px;">✕</button>
             </div>`;
-        li.onclick = () => window.openChat(fUid, fData?.nick);
+        li.onclick = () => openChat(fUid, fData?.nick);
         list.appendChild(li);
     }
 }
@@ -171,24 +183,35 @@ async function renderPending(data) {
     for (const pUid of (data.pending || [])) {
         const pSnap = await getDoc(doc(db, "users", pUid));
         const li = document.createElement("li");
-        li.innerHTML = `<span>${pSnap.data()?.nick}</span><button class="primary" style="padding:4px 8px; font-size:10px;" onclick="window.acceptFriend('${pUid}')">OK</button>`;
+        li.innerHTML = `
+            <span>${pSnap.data()?.nick}</span>
+            <button class="btn-primary" style="padding:4px 8px; width:auto;" onclick="window.acceptFriend('${pUid}')">OK</button>
+        `;
         list.appendChild(li);
     }
 }
 
-// ДЕЙСТВИЯ
-window.deleteFriend = async (uid) => { if(confirm("Удалить друга?")) await updateDoc(doc(db,"users",auth.currentUser.uid), {friends: arrayRemove(uid)}); };
-window.acceptFriend = async (uid) => {
-    await updateDoc(doc(db,"users",auth.currentUser.uid), {friends: arrayUnion(uid), pending: arrayRemove(uid)});
-    await updateDoc(doc(db,"users",uid), {friends: arrayUnion(auth.currentUser.uid)});
-};
-window.deleteMsg = async (id) => {
-    const chatId = [auth.currentUser.uid, currentChatUid].sort().join("_");
-    await deleteDoc(doc(db, "privateMessages", chatId, "messages", id));
-};
-window.logout = () => signOut(auth);
+// ПРОВЕРКА ВХОДА
+onAuthStateChanged(auth, (user) => {
+    if (!user) { window.location.href = "index.html"; return; }
+    
+    const uidDisplay = document.getElementById("userUid");
+    if (uidDisplay) uidDisplay.innerText = user.uid;
 
-// ИНИЦИАЛИЗАЦИЯ СОБЫТИЙ
+    onSnapshot(doc(db, "users", user.uid), (snap) => {
+        const d = snap.data();
+        if (d) {
+            document.getElementById("userNick").innerText = d.nick || "Jarvis";
+            document.getElementById('nickInput').value = d.nick || "";
+            document.getElementById('bioInput').value = d.bio || "";
+            document.getElementById('avaInput').value = d.ava || "";
+            renderFriends(d);
+            renderPending(d);
+        }
+    });
+});
+
+// ЗАГРУЗКА DOM
 document.addEventListener('DOMContentLoaded', () => {
     const sendBtn = document.getElementById('sendMsgBtn');
     if (sendBtn) sendBtn.onclick = sendMsg;
@@ -198,23 +221,32 @@ document.addEventListener('DOMContentLoaded', () => {
         chatInput.onkeydown = (e) => { if(e.key === 'Enter') sendMsg(); };
     }
 
-    const copyBox = document.getElementById('copyUidBox');
-    if (copyBox) {
-        copyBox.onclick = () => {
+    const copyBtn = document.getElementById('copyUidBox');
+    if (copyBtn) {
+        copyBtn.onclick = () => {
             const uid = document.getElementById('userUid').innerText;
             navigator.clipboard.writeText(uid);
-            alert("UID скопирован");
+            alert("UID скопирован!");
         };
     }
+
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.onclick = () => signOut(auth);
+    }
     
+    // ДОБАВЛЕНИЕ ДРУГА
     window.sendFriendRequest = async () => {
-        const u = document.getElementById('friendUidInput').value.trim();
-        if (u) {
+        const input = document.getElementById('friendUidInput');
+        const uid = input.value.trim();
+        if (uid) {
             try {
-                await updateDoc(doc(db, "users", u), { pending: arrayUnion(auth.currentUser.uid) });
+                await updateDoc(doc(db, "users", uid), { pending: arrayUnion(auth.currentUser.uid) });
                 alert("Запрос отправлен!");
                 window.closeModal('addFriendModal');
-            } catch(e) { alert("UID не найден"); }
+            } catch (e) {
+                alert("Ошибка: проверьте правильность UID");
+            }
         }
     };
 });
