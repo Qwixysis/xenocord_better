@@ -12,6 +12,10 @@ let unsubscribeTyping = null;
 let typingTimeout = null;
 let shownMsgIds = new Set();
 
+// Делаем функции доступными для onclick в HTML
+window.openModal = (id) => document.getElementById(id).classList.add('active');
+window.closeModal = (id) => document.getElementById(id).classList.remove('active');
+
 onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = "index.html"; return; }
     document.getElementById("userUid").innerText = user.uid;
@@ -24,8 +28,6 @@ onAuthStateChanged(auth, async (user) => {
     });
 });
 
-// --- СИСТЕМА УДАЛЕНИЯ И ПЕЧАТАНИЯ ---
-
 async function updateTyping(isTyping) {
     if (!currentChatUid) return;
     const chatId = [auth.currentUser.uid, currentChatUid].sort().join("_");
@@ -33,40 +35,26 @@ async function updateTyping(isTyping) {
 }
 
 async function deleteMsg(msgId) {
-    if (!confirm("Удалить это сообщение у всех?")) return;
+    if (!confirm("Удалить сообщение?")) return;
     const chatId = [auth.currentUser.uid, currentChatUid].sort().join("_");
     await deleteDoc(doc(db, "privateMessages", chatId, "messages", msgId));
 }
-
-async function removeFriend(fUid) {
-    if (!confirm("Удалить друга из списка?")) return;
-    const myUid = auth.currentUser.uid;
-    await updateDoc(doc(db, "users", myUid), { friends: arrayRemove(fUid) });
-    await updateDoc(doc(db, "users", fUid), { friends: arrayRemove(myUid) });
-}
-
-// --- ЛОГИКА ЧАТА ---
 
 async function openChat(fUid, nick) {
     if (currentChatUid === fUid) return;
     currentChatUid = fUid;
     shownMsgIds.clear();
-    document.getElementById("chatBox").innerHTML = "";
+    const box = document.getElementById("chatBox");
+    box.innerHTML = "";
     document.getElementById("chatTitle").innerText = nick;
 
     const chatId = [auth.currentUser.uid, fUid].sort().join("_");
 
-    // Слушаем сообщения
     if (unsubscribeChat) unsubscribeChat();
     const q = query(collection(db, "privateMessages", chatId, "messages"), orderBy("timestamp"));
     unsubscribeChat = onSnapshot(q, (snap) => {
-        const box = document.getElementById("chatBox");
-        
-        // Синхронизация удаления из DOM
         const dbIds = snap.docs.map(d => d.id);
-        Array.from(box.children).forEach(el => {
-            if (!dbIds.includes(el.id)) el.remove();
-        });
+        Array.from(box.children).forEach(el => { if (!dbIds.includes(el.id)) el.remove(); });
 
         snap.docChanges().forEach(change => {
             if (change.type === "added") {
@@ -76,7 +64,7 @@ async function openChat(fUid, nick) {
                     const div = document.createElement("div");
                     div.id = d.id;
                     div.className = `msg ${isMe ? 'my' : ''} new-msg`;
-                    div.innerHTML = `${d.data().text}${isMe ? `<button class="del-msg-btn">✕</button>` : ''}`;
+                    div.innerHTML = `<span>${d.data().text}</span>${isMe ? `<button class="del-msg-btn">✕</button>` : ''}`;
                     if (isMe) div.querySelector('.del-msg-btn').onclick = () => deleteMsg(d.id);
                     box.appendChild(div);
                     shownMsgIds.add(d.id);
@@ -86,20 +74,15 @@ async function openChat(fUid, nick) {
         box.scrollTop = box.scrollHeight;
     });
 
-    // Слушаем "печатает..."
     if (unsubscribeTyping) unsubscribeTyping();
     unsubscribeTyping = onSnapshot(doc(db, "typing", chatId), (snap) => {
         const data = snap.data();
-        const indicator = document.getElementById("typingIndicator");
-        indicator.innerText = (data && data[fUid]) ? `${nick} печатает...` : "";
+        document.getElementById("typingIndicator").innerText = (data && data[fUid]) ? `${nick} печатает...` : "";
     });
 }
 
-// --- УПРАВЛЕНИЕ UI ---
-
 document.addEventListener('DOMContentLoaded', () => {
     const input = document.getElementById('chatInput');
-    
     input?.addEventListener('input', () => {
         updateTyping(true);
         clearTimeout(typingTimeout);
@@ -111,28 +94,25 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.getElementById('sendMsgBtn').onclick = sendMsg;
-    document.getElementById('addFriendBtn').onclick = () => document.getElementById('friendModal').classList.add('active');
-    document.getElementById('profileBtn').onclick = () => document.getElementById('profileModal').classList.add('active');
+    document.getElementById('addFriendBtn').onclick = () => window.openModal('friendModal');
+    document.getElementById('profileBtn').onclick = () => window.openModal('profileModal');
     
-    document.querySelectorAll('.secondary').forEach(b => b.onclick = () => {
-        document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
-    });
-
     document.getElementById('confirmSendRequest').onclick = async () => {
         const uid = document.getElementById('friendUidInput').value.trim();
         if (uid) {
             await updateDoc(doc(db, "users", uid), { pending: arrayUnion(auth.currentUser.uid) });
             alert("Запрос отправлен!");
-            document.getElementById('friendModal').classList.remove('active');
+            window.closeModal('friendModal');
         }
     };
 
-    document.getElementById('copyUidBox').onclick = () => {
-        navigator.clipboard.writeText(document.getElementById('userUid').innerText);
-        alert("UID скопирован!");
+    document.getElementById('saveProfileBtn').onclick = async () => {
+        const nick = document.getElementById('editNickInput').value.trim();
+        if (nick) {
+            await updateDoc(doc(db, "users", auth.currentUser.uid), { nick });
+            window.closeModal('profileModal');
+        }
     };
-    
-    document.getElementById('logoutBtn').onclick = () => signOut(auth);
 });
 
 async function sendMsg() {
@@ -158,7 +138,10 @@ async function renderFriends(data) {
         li.onclick = () => openChat(fUid, fSnap.data()?.nick);
         li.querySelector('.del-friend-btn').onclick = (e) => {
             e.stopPropagation();
-            removeFriend(fUid);
+            if(confirm("Удалить друга?")) {
+                updateDoc(doc(db, "users", auth.currentUser.uid), { friends: arrayRemove(fUid) });
+                updateDoc(doc(db, "users", fUid), { friends: arrayRemove(auth.currentUser.uid) });
+            }
         };
         list.appendChild(li);
     }
