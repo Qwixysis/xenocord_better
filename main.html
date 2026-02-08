@@ -10,23 +10,27 @@
       color: #fff;
       margin: 0;
       padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
     }
     .container {
-      width: 900px;
-      margin: 30px auto;
-      background: #2c2c2c;
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto 1fr;
+      gap: 20px;
       padding: 20px;
-      border-radius: 8px;
     }
     input, button {
       width: 100%;
-      padding: 10px;
-      margin: 8px 0;
+      padding: 8px;
+      margin: 5px 0;
       border: none;
       border-radius: 4px;
     }
     input {
-      background: #3c3c3c;
+      background: #2c2c2c;
       color: #fff;
     }
     button {
@@ -38,32 +42,30 @@
       background: #005fa3;
     }
     .chat {
-      margin-top: 20px;
-      background: #3c3c3c;
+      background: #2c2c2c;
       padding: 10px;
       border-radius: 4px;
-      height: 200px;
       overflow-y: auto;
     }
-    h3 {
-      margin-top: 20px;
-      border-bottom: 1px solid #555;
-      padding-bottom: 5px;
+    footer {
+      background: #111;
+      color: #aaa;
+      text-align: left;
+      padding: 5px 10px;
+      font-size: 12px;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>Xenocord</h2>
-
     <!-- Авторизация -->
     <div id="auth-section">
+      <h3>Авторизация</h3>
       <input type="email" id="email" placeholder="Email">
       <input type="password" id="password" placeholder="Пароль">
       <button onclick="loginUser()">Войти</button>
       <button onclick="logout()">Выйти</button>
       <p id="welcome"></p>
-      <p id="userUid"></p>
     </div>
 
     <!-- Друзья -->
@@ -82,7 +84,6 @@
       <div id="profileModal" style="display:none;">
         <p>Email: <span id="profileEmail"></span></p>
         <p>Ник: <span id="profileNick"></span></p>
-        <p>UID: <span id="profileUid"></span></p>
         <div id="profilePhoto"></div>
         <button onclick="closeProfileModal()">Закрыть</button>
       </div>
@@ -96,6 +97,11 @@
       <div class="chat" id="chatBox"></div>
     </div>
   </div>
+
+  <!-- UID в левом нижнем углу -->
+  <footer>
+    UID: <span id="userUid"></span>
+  </footer>
 
   <!-- Подключение модулей -->
   <script type="module" src="main.js"></script>
