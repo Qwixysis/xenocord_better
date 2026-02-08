@@ -17,7 +17,6 @@
             <div class="sidebar-content">
                 <div class="label">ДРУЗЬЯ</div>
                 <ul id="friendsList"></ul>
-                
                 <div class="label">ЗАПРОСЫ</div>
                 <ul id="pendingList"></ul>
             </div>
@@ -37,12 +36,10 @@
                 <span id="chatTitle" style="font-weight: 800; font-size: 18px;">Выберите чат</span>
                 <div id="typingIndicator"></div>
             </header>
-            
             <div id="chatBox"></div>
-            
             <div class="chat-input-row">
-                <input type="text" id="chatInput" placeholder="Введите сообщение..." autocomplete="off">
-                <button id="sendMsgBtn" class="primary" style="width: auto; padding: 0 25px;">GO</button>
+                <input type="text" id="chatInput" placeholder="Сообщение..." autocomplete="off">
+                <button id="sendMsgBtn" class="primary" style="width: auto;">GO</button>
             </div>
         </main>
     </div>
@@ -50,7 +47,7 @@
     <div id="friendModal" class="modal">
         <div class="modal-content">
             <h3>Добавить друга</h3>
-            <input type="text" id="friendUidInput" placeholder="Вставьте UID пользователя">
+            <input type="text" id="friendUidInput" placeholder="UID пользователя">
             <button id="confirmSendRequest" class="primary">Отправить запрос</button>
             <button class="secondary" onclick="closeModal('friendModal')">Отмена</button>
         </div>
@@ -58,9 +55,9 @@
 
     <div id="profileModal" class="modal">
         <div class="modal-content">
-            <h3>Настройки профиля</h3>
-            <input type="text" id="editNickInput" placeholder="Твой новый ник">
-            <button id="saveProfileBtn" class="primary">Сохранить изменения</button>
+            <h3>Профиль</h3>
+            <input type="text" id="editNickInput" placeholder="Новый ник">
+            <button id="saveProfileBtn" class="primary">Сохранить</button>
             <button class="secondary" onclick="closeModal('profileModal')">Закрыть</button>
         </div>
     </div>
