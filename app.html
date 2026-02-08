@@ -2,21 +2,25 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Xenocord</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xenocord | App</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/gg-sans">
 </head>
 <body>
+
     <div class="app-container">
         <nav class="guilds-bar">
-            <div class="guild-icon dm active"><svg width="28" height="20" fill="white" viewBox="0 0 28 20"><path d="M20.66 20c0 0-.86-1.02-1.58-1.93 3.14-.88 4.34-2.83 4.34-2.83-1-.64-1.92-1.1-2.76-1.4-1.2-.5-2.35-.83-3.44-1.02-2.22-.38-4.25-.3-6.02 0-1.29.21-2.56.55-3.81 1.02-.85.3-1.88.8-2.97 1.4 0 0 1.15-1.88 4.17-2.79-.72-.9-1.6-1.97-1.6-1.97-5 .17-6.94 3.38-6.94 3.38 0 4.57 2.03 8.29 2.03 8.29 2.03 1.52 3.98 1.48 3.98 1.48l.14-.17c-2.54-.76-3.71-1.86-3.71-1.86 0 0 .31.17.84.4 1.85.82 3.34 1.15 4.07 1.27.15.02.28.05.41.05 1.12.14 2.37.24 3.7.24 1.78 0 3.72-.12 5.66-.5.15-.02.3-.05.44-.08 1.48-.28 3.06-.78 4.7-1.45 0 0-1.12 1.05-3.56 1.81l.19.21c5.02-.17 6.94-3.38 6.94-3.38 0-4.57-1.92-8.29-1.92-8.29-2.03-1.52-3.95-1.48-3.95-1.48l-.53.64c.96.29 1.92.53 2.6.64zM8.2 11.4c-1.21 0-2.19 1.05-2.19 2.34 0 1.29.98 2.34 2.19 2.34 1.21 0 2.19-1.05 2.19-2.34s-1.02-2.34-2.19-2.34zm8.14 0c-1.21 0-2.19 1.05-2.19 2.34 0 1.29.98 2.34 2.19 2.34 1.21 0 2.19-1.05 2.19-2.34s-.98-2.34-2.19-2.34z"/></svg></div>
+            <div class="guild-icon active" title="Личные сообщения">
+                <svg width="28" height="20" viewBox="0 0 28 20" fill="white"><path d="M20.6644 20C20.6644 20 19.8003 18.9762 19.0822 18.0714C22.2226 17.1905 23.4212 15.2381 23.4212 15.2381C22.4315 15.881 21.5137 16.3333 20.6644 16.6429C19.4658 17.1429 18.3185 17.4762 17.2226 17.6667C15.0034 18.0476 12.9726 17.9762 11.2021 17.6667C9.91438 17.4524 8.64041 17.119 7.39041 16.6429C6.5411 16.3333 5.5137 15.8333 4.41781 15.2381C4.41781 15.2381 5.56507 17.119 8.58562 18.0238C7.86644 18.9286 6.98288 20 6.98288 20C1.98288 19.8333 0.0445206 16.619 0.0445206 16.619C0.0445206 12.0476 2.07192 8.33333 2.07192 8.33333C4.09932 6.80952 6.05137 6.85714 6.05137 6.85714L6.19521 7.02381C3.65411 7.78571 2.47945 8.88095 2.47945 8.88095C2.47945 8.88095 2.7911 8.71429 3.32192 8.47619C5.16781 7.66667 6.65753 7.33333 7.39041 7.21429C7.5411 7.19048 7.66781 7.16667 7.79452 7.16667C8.91438 7.02381 10.161 6.92857 11.4966 6.92857C13.2774 6.92857 15.2158 7.04762 17.1507 7.42857C18.6336 7.71429 20.2123 8.21429 21.8459 8.88095C21.8459 8.88095 20.7226 7.83333 18.2842 7.07143L18.476 6.85714C18.476 6.85714 20.4281 6.80952 22.4555 8.33333C22.4555 8.33333 24.4829 12.0476 24.4829 16.619C24.4829 16.619 22.5685 19.8333 17.5411 20L18.0685 19.3571C19.0274 19.6429 19.9863 19.881 20.6644 20ZM8.19521 11.4048C6.98288 11.4048 6.00342 12.4524 6.00342 13.7381C6.00342 15.0238 6.98288 16.0714 8.19521 16.0714C9.40753 16.0714 10.387 15.0238 10.387 13.7381C10.387 12.4524 9.42808 11.4048 8.19521 11.4048ZM16.3322 11.4048C15.1199 11.4048 14.1404 12.4524 14.1404 13.7381C14.1404 15.0238 15.1199 16.0714 16.3322 16.0714C17.5445 16.0714 18.524 15.0238 18.524 13.7381C18.524 12.4524 17.5651 11.4048 16.3322 11.4048Z"/></svg>
+            </div>
             <div class="guild-sep"></div>
-            <div class="guild-icon add">+</div>
+            <div class="guild-icon add" onclick="window.openModal('addFriendModal')">+</div>
         </nav>
 
         <aside class="dm-sidebar">
             <div class="search-box">
-                <button>Найти или начать беседу</button>
+                <button onclick="alert('Поиск в разработке')">Найти или начать беседу</button>
             </div>
             <div class="scroller">
                 <div class="nav-item active"><span>👥</span> Друзья</div>
@@ -24,23 +28,27 @@
                 <div class="nav-item"><span>🏬</span> Shop</div>
                 
                 <div class="private-msgs-header">
-                    ЛИЧНЫЕ СООБЩЕНИЯ <span onclick="window.openModal('addFriendModal')">+</span>
+                    ЛИЧНЫЕ СООБЩЕНИЯ <span class="plus-btn" onclick="window.openModal('addFriendModal')">+</span>
                 </div>
                 <ul id="friendsList"></ul>
+
+                <div class="private-msgs-header">ЗАПРОСЫ (<span id="pendingCount">0</span>)</div>
+                <ul id="pendingList"></ul>
             </div>
+
             <footer class="self-panel">
                 <div class="user-block" onclick="window.openModal('settingsModal')">
                     <div class="ava-wrap">
-                        <div id="userAvatarMain" class="ava">?</div>
-                        <div class="status online"></div>
+                        <div id="userAvatarMain" class="ava-circle">?</div>
+                        <div class="status-dot online"></div>
                     </div>
-                    <div class="names">
-                        <div id="userNick">Загрузка...</div>
-                        <div class="subtext">В сети</div>
+                    <div class="user-info">
+                        <div id="userNick" class="nick-text">Загрузка...</div>
+                        <div class="sub-text">В сети</div>
                     </div>
                 </div>
-                <div class="user-btns">
-                    <button onclick="window.openModal('settingsModal')">⚙</button>
+                <div class="user-controls">
+                    <button class="icon-btn" onclick="window.openModal('settingsModal')">⚙</button>
                 </div>
             </footer>
         </aside>
@@ -48,36 +56,47 @@
         <main class="main-content">
             <header class="top-nav">
                 <div class="nav-left">
-                    <span class="icon">👥</span>
-                    <span class="title">Друзья</span>
-                    <div class="v-sep"></div>
-                    <button class="nav-btn active">В сети</button>
-                    <button class="nav-btn">Все</button>
-                    <button class="nav-btn">Ожидание</button>
-                    <button class="nav-btn">Заблокированные</button>
-                    <button class="nav-btn add-btn" onclick="window.openModal('addFriendModal')">Добавить друга</button>
+                    <span class="nav-icon">👥</span>
+                    <span class="nav-title">Друзья</span>
+                    <div class="v-divider"></div>
+                    <button class="tab-btn active">В сети</button>
+                    <button class="tab-btn">Все</button>
+                    <button class="tab-btn">Ожидание</button>
+                    <button class="tab-btn">Заблокированные</button>
+                    <button class="add-friend-btn" onclick="window.openModal('addFriendModal')">Добавить друга</button>
                 </div>
                 <div class="nav-right">
-                    <span class="icon">💬</span>
-                    <div class="v-sep"></div>
-                    <span class="icon">❓</span>
+                    <button class="icon-btn">💬</button>
+                    <div class="v-divider"></div>
+                    <button class="icon-btn">❓</button>
                 </div>
             </header>
 
-            <div class="content-body">
-                <div class="friends-column">
-                    <div class="search-friends">
-                        <input type="text" placeholder="Поиск">
-                    </div>
-                    <div class="count-header">В СЕТИ — <span id="onlineCount">0</span></div>
-                    <div id="chatBox" class="friends-list-full">
+            <div class="content-split">
+                <div class="center-col">
+                    <header class="chat-header" id="chatHeader" style="display:none;">
+                        <span class="hash">@</span> <h2 id="chatTitle">Имя</h2>
+                    </header>
+                    <div id="chatBox">
+                        <div class="welcome-screen">
+                            <div class="welcome-img"></div>
+                            <h2>Пока что здесь никого нет...</h2>
+                            <p>Добавьте друзей, чтобы начать общение!</p>
                         </div>
+                    </div>
+                    <div class="chat-input-wrap" id="inputArea" style="display:none;">
+                        <div class="input-inner">
+                            <button class="attach-btn">+</button>
+                            <input type="text" id="chatInput" placeholder="Написать сообщение...">
+                            <button id="sendMsgBtn">🚀</button>
+                        </div>
+                    </div>
                 </div>
 
-                <aside class="active-now">
+                <aside class="active-now-panel">
                     <h3>Активны сейчас</h3>
-                    <div class="empty-active">
-                        <h4>Пока что тут пусто...</h4>
+                    <div class="active-empty">
+                        <strong>Пока что тут пусто...</strong>
                         <p>Когда друзья начнут во что-то играть, это отобразится здесь!</p>
                     </div>
                 </aside>
@@ -85,8 +104,44 @@
         </main>
     </div>
 
-    <div id="settingsModal" class="overlay">...</div>
-    <div id="addFriendModal" class="overlay">...</div>
+    <div id="settingsModal" class="overlay">
+        <div class="modal-card profile-card">
+            <div class="modal-side">
+                <div class="m-nav active">Мой профиль</div>
+                <div class="m-divider"></div>
+                <button id="logoutBtn" class="m-nav logout">Выйти</button>
+            </div>
+            <div class="modal-main">
+                <button class="close-x" onclick="window.closeModal('settingsModal')">✕</button>
+                <h2>Настройки пользователя</h2>
+                <div class="input-group">
+                    <label>НИКНЕЙМ</label>
+                    <input type="text" id="nickInput">
+                </div>
+                <div class="input-group">
+                    <label>О СЕБЕ</label>
+                    <textarea id="bioInput" placeholder="Расскажите что-нибудь о себе..."></textarea>
+                </div>
+                <div class="input-group">
+                    <label>ВАШ UID (КЛИКНИТЕ ДЛЯ КОПИИ)</label>
+                    <div id="userUid" class="uid-copy-box" onclick="window.copyUID()">...</div>
+                </div>
+                <button class="save-profile-btn" onclick="window.saveProfile()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="addFriendModal" class="overlay">
+        <div class="modal-small">
+            <h3>Добавить друга</h3>
+            <p>Вы можете добавить друга по его уникальному UID.</p>
+            <input type="text" id="friendUidInput" placeholder="Введите UID пользователя">
+            <div class="m-footer">
+                <button class="btn-link" onclick="window.closeModal('addFriendModal')">Отмена</button>
+                <button class="btn-primary" onclick="window.sendFriendRequest()">Отправить запрос</button>
+            </div>
+        </div>
+    </div>
 
     <script type="module" src="main.js"></script>
 </body>
