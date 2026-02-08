@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Xenocord</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- адаптивность -->
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -21,6 +22,12 @@
       grid-template-rows: auto auto 1fr;
       gap: 20px;
       padding: 20px;
+    }
+    @media (max-width: 768px) {
+      .container {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto auto;
+      }
     }
     input, button {
       width: 100%;
@@ -45,6 +52,7 @@
       background: #2c2c2c;
       padding: 10px;
       border-radius: 4px;
+      height: 200px;
       overflow-y: auto;
     }
     footer {
@@ -60,6 +68,19 @@
       border-bottom: 1px solid #444;
       padding-bottom: 5px;
     }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    ul li {
+      margin: 5px 0;
+      padding: 5px;
+      background: #333;
+      border-radius: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
   </style>
 </head>
 <body>
@@ -68,8 +89,9 @@
     <div id="friends-section">
       <h3>Друзья</h3>
       <button onclick="openFriendModal()">Добавить друга</button>
+      <h4>Список друзей</h4>
       <ul id="friendsList"></ul>
-      <h4>Ожидающие запросы</h4>
+      <h4>Ожидание</h4>
       <ul id="pendingList"></ul>
     </div>
 
