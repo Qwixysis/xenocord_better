@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Xenocord</title>
-    <link rel="stylesheet" href="style.css?v=20.0">
+    <link rel="stylesheet" href="style.css?v=30.0">
 </head>
 <body>
     <div class="app-container">
-        <aside class="sidebar" id="sidebar">
+        <aside class="sidebar">
             <div class="user-card">
                 <h3 id="userNick">Xenocord</h3>
                 <button id="profileBtn" style="background:transparent; font-size:20px;">⚙️</button>
@@ -20,24 +20,24 @@
                 <ul id="pendingList"></ul>
             </div>
             <div class="sidebar-footer">
-                <button id="addFriendBtn">+ Добавить</button>
-                <button id="logoutBtn" class="danger">Выйти</button>
+                <button id="addFriendBtn" style="background:var(--accent); color:white;">+ Добавить</button>
                 <div class="uid-section" id="copyUidBox">
                     <small>UID (клик)</small>
                     <code id="userUid">...</code>
                 </div>
+                <button id="logoutBtn" class="danger" style="margin-top:5px;">Выход</button>
             </div>
         </aside>
 
         <main class="chat-main">
             <header id="chatHeader">
-                <button class="mobile-menu-btn" id="menuToggle">☰</button>
                 <span id="chatTitle">Выберите чат</span>
+                <div id="typingIndicator"></div>
             </header>
             <div id="chatBox"></div>
             <div class="chat-input-row">
                 <input type="text" id="chatInput" placeholder="Сообщение..." autocomplete="off">
-                <button id="sendMsgBtn">GO</button>
+                <button id="sendMsgBtn" style="background:var(--accent); color:white;">GO</button>
             </div>
         </main>
     </div>
@@ -46,7 +46,7 @@
         <div class="modal-content">
             <h3>Добавить друга</h3>
             <input type="text" id="friendUidInput" placeholder="UID...">
-            <button id="confirmSendRequest" style="width:100%;">Отправить</button>
+            <button id="confirmSendRequest" style="width:100%; background:var(--accent); color:white;">ОК</button>
             <button class="secondary" style="width:100%; margin-top:8px;">Отмена</button>
         </div>
     </div>
@@ -55,7 +55,7 @@
         <div class="modal-content">
             <h3>Профиль</h3>
             <input type="text" id="editNickInput">
-            <button id="saveProfileBtn" style="width:100%;">Сохранить</button>
+            <button id="saveProfileBtn" style="width:100%; background:var(--accent); color:white;">ОК</button>
             <button class="secondary" style="width:100%; margin-top:8px;">Закрыть</button>
         </div>
     </div>
