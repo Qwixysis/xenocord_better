@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Xenocord - App</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="user-info">
+            <h3 id="userNick">Загрузка...</h3>
+            <small id="userUid" style="font-size: 10px; color: var(--text-muted)"></small>
+        </div>
+        
+        <div class="friends-section">
+            <h4>ДРУЗЬЯ</h4>
+            <ul id="friendsList"></ul>
+            
+            <h4>ЗАПРОСЫ</h4>
+            <ul id="pendingList"></ul>
+        </div>
+
+        <div class="sidebar-footer">
+            <button onclick="openFriendModal()">+ Добавить друга</button>
+            <button onclick="logout()" style="background: #444;">Выход</button>
+        </div>
+    </aside>
+
+    <main class="chat-area">
+        <div id="chatHeader">Выберите чат</div>
+        <div id="chatBox">
+            <p style="text-align: center; color: var(--text-muted)">Здесь будут ваши сообщения</p>
+        </div>
+        <div class="input-area">
+            <input type="text" id="chatInput" placeholder="Написать сообщение...">
+            <button onclick="sendMessage()">Отправить</button>
+        </div>
+    </main>
+
+    <div id="friendModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeFriendModal()">&times;</span>
+            <h3>Добавить по UID</h3>
+            <input type="text" id="friendUidInput" placeholder="Вставьте UID друга">
+            <button onclick="sendFriendRequest()">Отправить запрос</button>
+        </div>
+    </div>
+
+    <script type="module" src="main.js"></script>
+</body>
+</html>
