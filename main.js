@@ -78,8 +78,7 @@ async function openChat(fUid, nick) {
     if (unsubscribeChat) unsubscribeChat();
     const q = query(collection(db, "privateMessages", chatId, "messages"), orderBy("timestamp"));
     
-    // Включаем includeMetadataChanges для мгновенного отображения
-    unsubscribeChat = onSnapshot(q, { includeMetadataChanges: true }, (snap) => {
+    unsubscribeChat = onSnapshot(q, (snap) => {
         const dbIds = snap.docs.map(d => d.id);
         Array.from(box.children).forEach(el => { if (!dbIds.includes(el.id)) el.remove(); });
         
@@ -88,24 +87,31 @@ async function openChat(fUid, nick) {
             const data = d.data(); 
             const isMe = data.senderUid === auth.currentUser.uid;
             
-            // Если timestamp еще null (в процессе записи), используем текущее время устройства
-            let date = (data.timestamp && data.timestamp.toDate) ? data.timestamp.toDate() : new Date();
-            let timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            // ВОТ ТУТ ЖЕСТКОЕ ИСПРАВЛЕНИЕ ВРЕМЕНИ
+            let displayTime = "";
+            if (data.timestamp) {
+                displayTime = data.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            } else {
+                // Если с сервера еще не пришло (null), ставим время прямо сейчас
+                displayTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            }
 
             if (change.type === "added") {
                 const div = document.createElement("div");
                 div.id = d.id; 
                 div.className = `msg ${isMe ? 'my' : ''}`;
                 
-                let actionsHtml = isMe ? `
-                    <div class="msg-actions">
+                let actionsHtml = "";
+                if (isMe) {
+                    actionsHtml = `<div class="msg-actions">
                         <button onclick="window.editMsg('${d.id}', '${data.text.replace(/'/g, "\\'")}')">✎</button>
                         <button onclick="window.deleteMsg('${d.id}')">✕</button>
-                    </div>` : "";
+                    </div>`;
+                }
 
                 div.innerHTML = `
                     <div class="msg-content">${data.text}</div>
-                    <div class="msg-footer">${timeStr}</div>
+                    <div class="msg-footer">${displayTime}</div>
                     ${actionsHtml}
                 `;
                 box.appendChild(div); 
@@ -114,7 +120,10 @@ async function openChat(fUid, nick) {
                 const el = document.getElementById(d.id);
                 if (el) {
                     el.querySelector(".msg-content").innerText = data.text;
-                    el.querySelector(".msg-footer").innerText = timeStr;
+                    // Обновляем время, когда оно наконец придет с сервера правильно
+                    if (data.timestamp) {
+                        el.querySelector(".msg-footer").innerText = data.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    }
                 }
             }
         });
