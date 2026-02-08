@@ -9,18 +9,13 @@ const db = getFirestore();
 let currentChatUid = null;
 let unsubscribeChat = null;
 
-// --- Авторизация ---
+// --- Авторизация и запуск ---
 onAuthStateChanged(auth, async user => {
   if (!user) {
     window.location.href = "index.html";
   } else {
-    document.getElementById("welcome").textContent = 
-      `Привет, ${user.displayName || user.email}!`;
-
-    // UID внизу слева
     const uidEl = document.getElementById("userUid");
     if (uidEl) uidEl.textContent = user.uid;
-
     loadFriends(user.uid);
   }
 });
@@ -35,16 +30,11 @@ window.closeFriendModal = function() {
 
 window.sendFriendRequest = async function() {
   const friendUid = document.getElementById("friendUid").value.trim();
-  const errorEl = document.getElementById("friendError");
-  errorEl.textContent = "";
-
   if (!friendUid) return;
 
-  const usersRef = doc(db, "users", friendUid);
-  const userSnap = await getDoc(usersRef);
-
+  const userSnap = await getDoc(doc(db, "users", friendUid));
   if (!userSnap.exists()) {
-    errorEl.textContent = "Такого пользователя нет!";
+    alert("Такого пользователя нет!");
     return;
   }
 
@@ -89,9 +79,6 @@ async function loadFriends(uid) {
       if (friendSnap.exists()) {
         const friendData = friendSnap.data();
         friendsList.innerHTML += `<li>
-          <div style="width:30px;height:30px;border-radius:50%;background:#444;display:inline-flex;align-items:center;justify-content:center;color:#eee;font-size:14px;">
-            ${friendData.nick ? friendData.nick[0].toUpperCase() : "?"}
-          </div>
           ${friendData.nick} 
           <button onclick="openChatWithFriend('${f}')">Чат</button>
           <button onclick="viewFriendProfile('${f}')">Профиль</button>
@@ -106,9 +93,6 @@ async function loadFriends(uid) {
       if (pendingSnap.exists()) {
         const pendingData = pendingSnap.data();
         pendingList.innerHTML += `<li>
-          <div style="width:30px;height:30px;border-radius:50%;background:#444;display:inline-flex;align-items:center;justify-content:center;color:#eee;font-size:14px;">
-            ${pendingData.nick ? pendingData.nick[0].toUpperCase() : "?"}
-          </div>
           ${pendingData.nick} 
           <button onclick="acceptRequest('${p}')">Принять</button>
           <button onclick="viewFriendProfile('${p}')">Профиль</button>
@@ -123,38 +107,8 @@ window.viewFriendProfile = async function(uid) {
   const snap = await getDoc(doc(db, "users", uid));
   if (snap.exists()) {
     const data = snap.data();
-    document.getElementById("friendProfileEmail").textContent = data.email;
-    document.getElementById("friendProfileNick").textContent = data.nick;
-    const uidEl = document.getElementById("friendProfileUid");
-    if (uidEl) uidEl.textContent = uid;
-
-    const photoEl = document.getElementById("friendProfilePhoto");
-    if (data.photoURL) {
-      photoEl.innerHTML = `<img src="${data.photoURL}" width="100" height="100" style="border-radius:50%;">`;
-    } else {
-      photoEl.innerHTML = `<div style="width:100px;height:100px;border-radius:50%;background:#444;display:flex;align-items:center;justify-content:center;color:#eee;font-size:32px;">?</div>`;
-    }
-
-    document.getElementById("friendProfileModal").style.display = "block";
-  }
-};
-
-window.closeFriendProfileModal = function() {
-  document.getElementById("friendProfileModal").style.display = "none";
-};
-
-// --- Мой профиль ---
-window.openProfileModal = async function() {
-  const user = auth.currentUser;
-  if (!user) return;
-
-  const snap = await getDoc(doc(db, "users", user.uid));
-  if (snap.exists()) {
-    const data = snap.data();
     document.getElementById("profileEmail").textContent = data.email;
     document.getElementById("profileNick").textContent = data.nick;
-    const uidEl = document.getElementById("profileUid");
-    if (uidEl) uidEl.textContent = user.uid;
 
     const photoEl = document.getElementById("profilePhoto");
     if (data.photoURL) {
@@ -213,14 +167,6 @@ function subscribeToChat(friendUid) {
       const data = doc.data();
       if (data.text) {
         chatBox.innerHTML += `<p><b>${data.senderNick}:</b> ${data.text}</p>`;
-      } else if (data.mediaUrl) {
-        if (data.mediaType === "image") {
-          chatBox.innerHTML += `<p><b>${data.senderNick}:</b><br>
-            <img src="${data.mediaUrl}" width="200"></p>`;
-        } else if (data.mediaType === "video") {
-          chatBox.innerHTML += `<p><b>${data.senderNick}:</b><br>
-            <video src="${data.mediaUrl}" width="300" controls></video></p>`;
-        }
       }
     });
   });
