@@ -9,56 +9,70 @@
     --danger: #da373c;
 }
 
-@keyframes msgPop { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }
+/* --- КАСКАД АНИМАЦИЙ --- */
+@keyframes msgSlideIn {
+    0% { opacity: 0; transform: translateY(20px) scale(0.9); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes modalShow {
+    0% { transform: scale(0.7); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes pulseTyping {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
 
 body { background: var(--bg-dark); color: var(--text); height: 100vh; overflow: hidden; }
 .app-container { display: flex; height: 100vh; }
 
+/* САЙДБАР */
 .sidebar { width: 280px; background: var(--bg-sidebar); display: flex; flex-direction: column; border-right: 1px solid #1a1a1c; }
 .user-card { padding: 20px; background: var(--bg-card); display: flex; justify-content: space-between; align-items: center; }
 .sidebar-content { flex: 1; padding: 10px; overflow-y: auto; }
 .label { font-size: 11px; font-weight: 800; color: var(--text-muted); margin: 15px 8px 5px; text-transform: uppercase; }
 
-li { padding: 10px; margin: 4px 0; border-radius: 8px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
-li:hover { background: rgba(255,255,255,0.05); }
+li { padding: 10px; margin: 4px 0; border-radius: 8px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.3s; }
+li:hover { background: rgba(255,255,255,0.08); }
 
-.sidebar-footer { padding: 15px; background: #232428; display: flex; flex-direction: column; gap: 8px; }
-.uid-section { background: var(--bg-dark); padding: 10px; border-radius: 12px; border: 1px dashed #4e5058; text-align: center; cursor: pointer; font-size: 11px; }
+.sidebar-footer { padding: 15px; background: #232428; display: flex; flex-direction: column; gap: 10px; }
+.uid-section { background: var(--bg-dark); padding: 10px; border-radius: 12px; border: 1px dashed #4e5058; text-align: center; cursor: pointer; transition: 0.2s; }
+.uid-section:hover { border-color: var(--accent); }
 
+/* ЧАТ */
 .chat-main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-#chatHeader { height: 70px; padding: 0 20px; border-bottom: 1px solid #28292c; display: flex; flex-direction: column; justify-content: center; cursor: pointer; }
-#typingIndicator { font-size: 12px; color: var(--accent); height: 16px; }
+#chatHeader { height: 70px; padding: 0 25px; border-bottom: 1px solid #28292c; display: flex; flex-direction: column; justify-content: center; }
+#typingIndicator { font-size: 12px; color: var(--accent); height: 16px; animation: pulseTyping 1.5s infinite; }
 
-#chatBox { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+#chatBox { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
 
-/* СООБЩЕНИЯ */
+/* ОБЛАЧКА СООБЩЕНИЙ С АНИМАЦИЕЙ */
 .msg {
-    position: relative; padding: 10px 14px; border-radius: 14px; background: #383a40;
-    max-width: 70%; width: fit-content; align-self: flex-start;
-    animation: msgPop 0.2s ease-out; word-break: break-word;
+    position: relative; padding: 10px 16px; border-radius: 16px; background: #383a40;
+    max-width: 75%; width: fit-content; align-self: flex-start;
+    word-break: break-word; line-height: 1.4;
+    /* Базовая анимация при создании */
+    animation: msgSlideIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
 }
-.msg.my { background: var(--accent); align-self: flex-end; border-bottom-right-radius: 2px; }
+.msg.my { background: var(--accent); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
 
-.msg-footer { font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 4px; display: flex; gap: 5px; }
-.msg-actions { 
-    position: absolute; top: -10px; right: 0; display: none; gap: 4px; 
-}
+.msg-footer { font-size: 10px; color: rgba(255,255,255,0.4); margin-top: 5px; }
+.msg-actions { position: absolute; top: -10px; right: 0; display: none; gap: 5px; }
 .msg:hover .msg-actions { display: flex; }
-.msg-actions button { 
-    padding: 4px 8px; font-size: 10px; border-radius: 4px; background: var(--bg-card); color: white; border: 1px solid #444; 
-}
-.msg-actions .del-btn:hover { background: var(--danger); }
+.msg-actions button { padding: 4px 8px; border-radius: 6px; background: #1e1f22; color: white; border: 1px solid #444; cursor: pointer; font-size: 10px; }
 
-.chat-input-row { padding: 20px; display: flex; gap: 10px; }
-#chatInput { flex: 1; background: #383a40; border: none; padding: 14px; border-radius: 12px; color: white; outline: none; }
+.chat-input-row { padding: 20px; display: flex; gap: 12px; background: var(--bg-dark); }
+#chatInput { flex: 1; background: #383a40; border: none; padding: 15px; border-radius: 12px; color: white; outline: none; }
 
-/* МОДАЛКИ */
+/* МОДАЛКИ С АНИМАЦИЕЙ */
 .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
 .modal.active { display: flex; }
-.modal-content { background: var(--bg-sidebar); padding: 25px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; }
-.modal input { width: 100%; padding: 12px; background: var(--bg-dark); border: 1px solid #444; border-radius: 8px; color: white; margin: 15px 0; }
+.modal-content { background: var(--bg-sidebar); padding: 30px; border-radius: 20px; width: 90%; max-width: 400px; text-align: center; animation: modalShow 0.4s cubic-bezier(0.17, 0.89, 0.32, 1.49); }
 
-button { border: none; border-radius: 8px; padding: 10px 20px; cursor: pointer; font-weight: 700; }
-.primary { background: var(--accent); color: white; }
+button { border: none; border-radius: 8px; padding: 12px 20px; cursor: pointer; font-weight: 700; transition: transform 0.1s; }
+button:active { transform: scale(0.95); }
+.primary { background: var(--accent); color: white; width: 100%; }
 .danger { background: var(--danger); color: white; }
 .secondary { background: #4e5058; color: white; width: 100%; margin-top: 8px; }
