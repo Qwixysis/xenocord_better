@@ -9,15 +9,9 @@
     --danger: #da373c;
 }
 
-@keyframes messageIn {
-    0% { opacity: 0; transform: translateY(20px) scale(0.9); }
-    100% { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-@keyframes modalIn {
-    from { opacity: 0; transform: translateY(-30px) scale(0.9); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
-}
+@keyframes messageIn { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 1; transform: translateY(0); } }
+@keyframes modalIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+@keyframes slideIn { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: translateX(0); } }
 
 body { background: var(--bg-dark); color: var(--text); height: 100vh; overflow: hidden; }
 .app-container { display: flex; height: 100vh; }
@@ -28,66 +22,51 @@ body { background: var(--bg-dark); color: var(--text); height: 100vh; overflow: 
 .sidebar-content { flex: 1; padding: 10px; overflow-y: auto; }
 .label { font-size: 11px; font-weight: 800; color: var(--text-muted); margin: 15px 8px 5px; text-transform: uppercase; }
 
-/* ДРУЗЬЯ И КРЕСТИК */
-li { 
-    padding: 10px; margin: 4px 0; border-radius: 8px; cursor: pointer; 
-    display: flex; justify-content: space-between; align-items: center; 
-    transition: 0.2s; position: relative;
-}
+/* ДРУЗЬЯ */
+li { padding: 10px; margin: 4px 0; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: 0.2s; position: relative; }
 li:hover { background: rgba(255,255,255,0.05); }
+.friend-actions { display: none; margin-left: auto; gap: 8px; }
+li:hover .friend-actions { display: flex; }
+.action-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; padding: 2px; transition: 0.2s; }
+.action-btn:hover { color: white; }
+.action-btn.del:hover { color: var(--danger); }
 
-.delete-friend-btn {
-    background: none !important;
-    border: none !important;
-    color: var(--text-muted);
-    font-size: 18px;
-    cursor: pointer;
-    display: none; /* СКРЫТ ПО УМОЛЧАНИЮ */
-    padding: 0 5px;
-}
-li:hover .delete-friend-btn { display: block; } /* ПОЯВЛЯЕТСЯ ПРИ НАВЕДЕНИИ */
-.delete-friend-btn:hover { color: var(--danger) !important; }
-
-.sidebar-footer { padding: 15px; background: #232428; display: flex; flex-direction: column; gap: 8px; }
+.sidebar-footer { padding: 15px; background: #232428; }
 .uid-section { background: var(--bg-dark); padding: 10px; border-radius: 12px; border: 1px dashed #4e5058; text-align: center; cursor: pointer; font-size: 11px; }
 
 /* ЧАТ */
-.chat-main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: #313338; }
+.chat-main { flex: 1; display: flex; flex-direction: column; background: #313338; }
 #chatHeader { height: 70px; padding: 0 25px; background: var(--bg-sidebar); display: flex; flex-direction: column; justify-content: center; border-bottom: 1px solid #111; }
-#typingIndicator { font-size: 12px; color: var(--accent); height: 16px; font-weight: bold; }
 #chatBox { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
 
-/* СООБЩЕНИЯ */
-.msg {
-    position: relative; padding: 10px 14px; border-radius: 16px; background: #383a40;
-    max-width: 75%; width: fit-content; align-self: flex-start;
-    word-break: break-word; line-height: 1.4;
-    animation: messageIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
-}
+.msg { position: relative; padding: 10px 14px; border-radius: 16px; background: #383a40; max-width: 75%; animation: messageIn 0.3s ease-out; }
 .msg.my { background: var(--accent); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
-.msg-footer { font-size: 10px; color: rgba(255,255,255,0.4); margin-top: 5px; }
+.msg-footer { font-size: 10px; opacity: 0.5; margin-top: 5px; }
 .msg-actions { position: absolute; top: -12px; right: 0; display: none; gap: 5px; }
 .msg:hover .msg-actions { display: flex; }
-.msg-actions button { padding: 4px 8px; border-radius: 6px; background: #111; color: white; border: 1px solid #444; cursor: pointer; font-size: 10px; }
+.msg-actions button { padding: 2px 6px; border-radius: 4px; background: #111; color: white; border: none; cursor: pointer; font-size: 10px; }
 
 .chat-input-row { padding: 20px; display: flex; gap: 12px; }
 #chatInput { flex: 1; background: #383a40; border: none; padding: 15px; border-radius: 12px; color: white; outline: none; }
 
-/* МОДАЛКИ */
-.modal { 
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-    background: rgba(0,0,0,0.85); z-index: 10000; 
-    display: none; align-items: center; justify-content: center; 
-    backdrop-filter: blur(4px);
-}
-.modal.active { display: flex; }
-.modal-content { 
-    background: var(--bg-sidebar); padding: 30px; border-radius: 20px; 
-    width: 90%; max-width: 400px; text-align: center;
-    animation: modalIn 0.3s ease-out;
-}
+/* НАСТРОЙКИ */
+.settings-layout { display: flex; gap: 20px; min-height: 300px; text-align: left; }
+.settings-menu { width: 120px; border-right: 1px solid #444; display: flex; flex-direction: column; gap: 10px; }
+.menu-item { padding: 8px; cursor: pointer; border-radius: 5px; color: var(--text-muted); transition: 0.2s; }
+.menu-item.active { background: var(--accent); color: white; }
+.settings-content { flex: 1; animation: slideIn 0.3s ease; }
+.settings-content h4 { margin-bottom: 15px; color: white; }
+.input-group { margin-bottom: 12px; }
+.input-group label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: 5px; text-transform: uppercase; }
+input, textarea { width: 100%; background: #1e1f22; border: 1px solid #111; padding: 10px; border-radius: 5px; color: white; outline: none; }
 
-button { border: none; border-radius: 8px; padding: 12px 20px; cursor: pointer; font-weight: 700; transition: 0.2s; }
-.primary { background: var(--accent); color: white; width: 100%; }
-.danger { background: var(--danger); color: white; }
-.secondary { background: #4e5058; color: white; width: 100%; margin-top: 10px; }
+/* МОДАЛКИ */
+.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+.modal.active { display: flex; }
+.modal-content { background: var(--bg-sidebar); padding: 25px; border-radius: 15px; width: 500px; animation: modalIn 0.3s ease; }
+
+.avatar-preview { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 10px; background: #111; }
+
+button { border: none; border-radius: 5px; padding: 10px 15px; cursor: pointer; font-weight: 600; }
+.primary { background: var(--accent); color: white; margin-top: 10px; }
+.danger { background: var(--danger); color: white; width: 100%; margin-top: 20px; }
