@@ -1,135 +1,204 @@
-import { auth } from "./firebase.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { 
-  getFirestore, doc, getDoc, updateDoc, arrayUnion, arrayRemove,
-  collection, addDoc, serverTimestamp, onSnapshot, query, orderBy
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-const db = getFirestore();
-let currentChatUid = null;
-let unsubscribeChat = null;
-
-// --- Авторизация ---
-onAuthStateChanged(auth, async (user) => {
-    if (!user) {
-        window.location.href = "index.html";
-    } else {
-        const uidEl = document.getElementById("userUid");
-        if (uidEl) uidEl.innerText = user.uid;
-        
-        // Живое обновление профиля
-        onSnapshot(doc(db, "users", user.uid), (snap) => {
-            const data = snap.data();
-            if (data) {
-                const nickEl = document.getElementById("userNick");
-                if (nickEl) nickEl.innerText = data.nick || "Юзер";
-                renderFriends(data);
-            }
-        });
-    }
-});
-
-// --- Глобальные функции (видны в HTML) ---
-window.openModal = (id) => {
-    const m = document.getElementById(id);
-    if (m) {
-        m.style.display = 'flex';
-        if (id === 'profileModal') {
-            document.getElementById('editNickInput').value = document.getElementById('userNick').innerText;
-        }
-    }
-};
-
-window.closeModal = (id) => {
-    const m = document.getElementById(id);
-    if (m) m.style.display = 'none';
-};
-
-window.copyUid = () => {
-    const uid = document.getElementById('userUid').innerText;
-    navigator.clipboard.writeText(uid).then(() => alert("UID скопирован!"));
-};
-
-window.logout = () => signOut(auth);
-
-window.saveProfile = async () => {
-    const newNick = document.getElementById('editNickInput').value.trim();
-    if (!newNick) return;
-    try {
-        await updateDoc(doc(db, "users", auth.currentUser.uid), { nick: newNick });
-        window.closeModal('profileModal');
-    } catch (e) { console.error(e); }
-};
-
-window.sendFriendRequest = async () => {
-    const input = document.getElementById("friendUidInput");
-    const fUid = input.value.trim();
-    if (!fUid || fUid === auth.currentUser.uid) return alert("Неверный UID");
-    try {
-        await updateDoc(doc(db, "users", fUid), { pending: arrayUnion(auth.currentUser.uid) });
-        alert("Запрос отправлен!");
-        input.value = "";
-        window.closeModal('friendModal');
-    } catch (e) { alert("Пользователь не найден"); }
-};
-
-// --- Друзья и Чат ---
-async function renderFriends(data) {
-    const fList = document.getElementById("friendsList");
-    const pList = document.getElementById("pendingList");
-    if (!fList || !pList) return;
-
-    fList.innerHTML = "";
-    for (const fUid of (data.friends || [])) {
-        const fSnap = await getDoc(doc(db, "users", fUid));
-        const li = document.createElement("li");
-        li.innerHTML = `<span>${fSnap.data()?.nick || 'Друг'}</span>`;
-        li.onclick = () => openChat(fUid, fSnap.data()?.nick);
-        fList.appendChild(li);
-    }
-
-    pList.innerHTML = "";
-    for (const pUid of (data.pending || [])) {
-        const pSnap = await getDoc(doc(db, "users", pUid));
-        const li = document.createElement("li");
-        li.innerHTML = `<span>${pSnap.data()?.nick}</span> <button class="mini-ok" onclick="event.stopPropagation(); acceptFriend('${pUid}')">OK</button>`;
-        pList.appendChild(li);
-    }
+/* --- Сброс и база --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Roboto, sans-serif;
 }
 
-window.acceptFriend = async (fUid) => {
-    const myUid = auth.currentUser.uid;
-    await updateDoc(doc(db, "users", myUid), { friends: arrayUnion(fUid), pending: arrayRemove(fUid) });
-    await updateDoc(doc(db, "users", fUid), { friends: arrayUnion(myUid) });
-};
-
-async function openChat(fUid, nick) {
-    currentChatUid = fUid;
-    document.getElementById("chatHeader").innerText = "Чат: " + nick;
-    const chatId = [auth.currentUser.uid, fUid].sort().join("_");
-
-    if (unsubscribeChat) unsubscribeChat();
-    const q = query(collection(db, "privateMessages", chatId, "messages"), orderBy("timestamp"));
-    
-    unsubscribeChat = onSnapshot(q, (snap) => {
-        const box = document.getElementById("chatBox");
-        box.innerHTML = snap.docs.map(d => `
-            <div class="msg ${d.data().senderUid === auth.currentUser.uid ? 'my' : ''}">
-                ${d.data().text}
-            </div>
-        `).join("");
-        box.scrollTop = box.scrollHeight;
-    });
+:root {
+    --dark-bg: #1e1f22;
+    --sidebar-bg: #2b2d31;
+    --modal-bg: #313338;
+    --accent: #5865f2;
+    --text-color: #dbdee1;
+    --radius: 16px;
 }
 
-window.sendMessage = async () => {
-    const input = document.getElementById("chatInput");
-    if (!input.value || !currentChatUid) return;
-    const chatId = [auth.currentUser.uid, currentChatUid].sort().join("_");
-    await addDoc(collection(db, "privateMessages", chatId, "messages"), {
-        senderUid: auth.currentUser.uid,
-        text: input.value,
-        timestamp: serverTimestamp()
-    });
-    input.value = "";
-};
+body {
+    background-color: var(--dark-bg);
+    color: var(--text-color);
+    height: 100vh;
+    display: flex;
+}
+
+/* --- Главный контейнер --- */
+.app-container {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+}
+
+/* --- Сайдбар --- */
+.sidebar {
+    width: 280px;
+    background: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #1a1a1c;
+}
+
+.user-card {
+    padding: 20px;
+    background: rgba(0,0,0,0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sidebar-content {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+}
+
+.label {
+    font-size: 11px;
+    font-weight: bold;
+    color: #949ba4;
+    margin: 15px 0 5px;
+    text-transform: uppercase;
+}
+
+/* --- Списки --- */
+ul { list-style: none; }
+li {
+    padding: 10px;
+    margin: 4px 0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+li:hover { background: #35373c; }
+
+/* --- Подвал с UID --- */
+.sidebar-footer {
+    padding: 20px;
+    background: #232428;
+}
+
+.uid-section {
+    margin-top: 10px;
+    background: var(--dark-bg);
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px dashed #4e5058;
+    text-align: center;
+    cursor: pointer;
+}
+
+.uid-section code {
+    display: block;
+    color: var(--accent);
+    font-size: 11px;
+    margin-top: 4px;
+}
+
+/* --- Чат --- */
+.chat-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+#chatHeader {
+    height: 60px;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    background: var(--dark-bg);
+    border-bottom: 1px solid #28292c;
+    font-weight: bold;
+}
+
+#chatBox {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.msg {
+    padding: 10px 15px;
+    border-radius: 18px;
+    background: #383a40;
+    max-width: 70%;
+    align-self: flex-start;
+}
+
+.msg.my {
+    background: var(--accent);
+    color: white;
+    align-self: flex-end;
+}
+
+.chat-input-row {
+    padding: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+#chatInput {
+    flex: 1;
+    background: #383a40;
+    border: none;
+    padding: 12px;
+    border-radius: 10px;
+    color: white;
+    outline: none;
+}
+
+/* --- МОДАЛЬНЫЕ ОКНА --- */
+.modal {
+    display: none; /* JS переключит на flex */
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px); /* Тот самый эффект размытия */
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: var(--modal-bg);
+    padding: 30px;
+    border-radius: var(--radius);
+    width: 360px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+
+.modal-content input {
+    width: 100%;
+    padding: 12px;
+    background: var(--dark-bg);
+    border: 1px solid #444;
+    border-radius: 8px;
+    color: white;
+    margin: 15px 0;
+}
+
+/* --- Кнопки --- */
+button {
+    padding: 10px 15px;
+    border-radius: 8px;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+#addFriendBtn, #confirmSendRequest, #saveProfileBtn, #sendMsgBtn {
+    background: var(--accent);
+    color: white;
+    width: 100%;
+}
+
+button.danger { background: #da373c; color: white; width: 100%; margin-bottom: 10px; }
+button.secondary { background: #4e5058; color: white; width: 100%; }
+.icon-btn { background: transparent; font-size: 20px; width: auto; }
+
+button:hover { opacity: 0.9; }
