@@ -1,22 +1,53 @@
-/* Общие сбросы */
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+/* --- ОБНУЛЕНИЕ И БАЗА --- */
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+    font-family: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+}
+
 :root {
     --bg-dark: #1e1f22;
     --bg-sidebar: #2b2d31;
     --bg-card: #232428;
+    --bg-modifier-hover: rgba(78, 80, 88, 0.3);
+    --bg-modifier-active: rgba(78, 80, 88, 0.6);
     --accent: #5865f2;
+    --accent-hover: #4752c4;
     --text: #dbdee1;
     --text-muted: #949ba4;
+    --text-link: #00a8fc;
     --danger: #da373c;
+    --success: #23a559;
     --border: rgba(255,255,255,0.05);
+    --transition-speed: 0.2s;
 }
 
-body { background: var(--bg-dark); color: var(--text); height: 100vh; width: 100vw; overflow: hidden; }
+body { 
+    background: var(--bg-dark); 
+    color: var(--text); 
+    height: 100vh; 
+    width: 100vw; 
+    overflow: hidden; 
+    line-height: 1.2;
+}
 
-/* Главный контейнер - строго flex-row */
-.app-container { display: flex; flex-direction: row; height: 100vh; width: 100vw; }
+/* --- СКРОЛЛБАР --- */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #1a1b1e; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #111; }
 
-/* Сайдбар - фиксированная ширина */
+/* --- ГЛАВНЫЙ КОНТЕЙНЕР --- */
+.app-container { 
+    display: flex; 
+    flex-direction: row; 
+    height: 100vh; 
+    width: 100vw; 
+    position: relative;
+}
+
+/* --- САЙДБАР --- */
 .sidebar { 
     width: 280px; 
     min-width: 280px; 
@@ -24,25 +55,76 @@ body { background: var(--bg-dark); color: var(--text); height: 100vh; width: 100
     display: flex; 
     flex-direction: column; 
     border-right: 1px solid #111; 
+    z-index: 10;
 }
 
-.user-card { padding: 16px; background: var(--bg-card); display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
-.sidebar-content { flex: 1; padding: 10px; overflow-y: auto; }
-.label { font-size: 11px; font-weight: 800; color: var(--text-muted); margin: 15px 8px 5px; text-transform: uppercase; }
+.user-card { 
+    padding: 16px; 
+    background: var(--bg-card); 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    border-bottom: 1px solid var(--border);
+    transition: background var(--transition-speed);
+}
 
-li { padding: 8px 12px; margin: 2px 0; border-radius: 4px; cursor: pointer; display: flex; align-items: center; list-style: none; }
-li:hover { background: rgba(255,255,255,0.06); }
+.sidebar-content { 
+    flex: 1; 
+    padding: 10px; 
+    overflow-y: auto; 
+}
 
-/* Чат - на всю оставшуюся ширину */
+.label { 
+    font-size: 11px; 
+    font-weight: 800; 
+    color: var(--text-muted); 
+    margin: 15px 8px 5px; 
+    text-transform: uppercase; 
+    letter-spacing: 0.5px; 
+}
+
+/* --- СПИСКИ --- */
+ul { list-style: none; }
+li { 
+    padding: 10px 12px; 
+    margin: 2px 0; 
+    border-radius: 4px; 
+    cursor: pointer; 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between;
+    transition: background var(--transition-speed), color var(--transition-speed);
+    color: var(--text-muted);
+}
+li:hover { 
+    background: var(--bg-modifier-hover); 
+    color: var(--text);
+}
+li.active { 
+    background: var(--bg-modifier-active); 
+    color: #fff; 
+}
+
+/* --- ОСНОВНОЙ ЧАТ --- */
 .chat-main { 
     flex: 1; 
     display: flex; 
     flex-direction: column; 
     background: #313338; 
-    min-width: 0; /* Важно, чтобы не распирало */
+    min-width: 0; 
+    position: relative;
 }
 
-#chatHeader { height: 48px; padding: 0 16px; display: flex; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.2); }
+#chatHeader { 
+    height: 48px; 
+    padding: 0 16px; 
+    display: flex; 
+    align-items: center; 
+    background: #313338; 
+    border-bottom: 1px solid rgba(0,0,0,0.2); 
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    z-index: 5;
+}
 
 #chatBox { 
     flex: 1; 
@@ -50,39 +132,207 @@ li:hover { background: rgba(255,255,255,0.06); }
     overflow-y: auto; 
     display: flex; 
     flex-direction: column; 
-    gap: 8px; 
+    gap: 12px; 
 }
 
-/* Сообщения в столбик */
+/* --- СООБЩЕНИЯ --- */
 .msg { 
-    padding: 8px 16px; 
+    padding: 10px 16px; 
     border-radius: 12px; 
-    max-width: 70%; 
+    max-width: 75%; 
     word-wrap: break-word;
-    display: block; /* Каждое сообщение - новый блок */
-    clear: both;
+    position: relative;
+    animation: msgAppear 0.2s ease-out;
 }
 
-.msg.my { align-self: flex-end; background: var(--accent); color: white; border-bottom-right-radius: 2px; }
-.msg:not(.my) { align-self: flex-start; background: #383a40; border-bottom-left-radius: 2px; }
-.msg-footer { font-size: 10px; opacity: 0.6; margin-top: 4px; display: block; text-align: right; }
+@keyframes msgAppear {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
 
-/* Инпут чата */
-.chat-input-row { padding: 20px; display: flex; gap: 12px; background: #313338; }
-#chatInput { flex: 1; background: #383a40; border: none; padding: 12px; border-radius: 8px; color: white; outline: none; }
+.msg.my { 
+    align-self: flex-end; 
+    background: var(--accent); 
+    color: white; 
+    border-bottom-right-radius: 2px; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
 
-/* Модальные окна */
-.modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; display: none; align-items: center; justify-content: center; }
+.msg:not(.my) { 
+    align-self: flex-start; 
+    background: #383a40; 
+    border-bottom-left-radius: 2px; 
+}
+
+.msg-footer { 
+    font-size: 10px; 
+    opacity: 0.5; 
+    margin-top: 5px; 
+    text-align: right; 
+    user-select: none;
+}
+
+/* --- ВВОД СООБЩЕНИЯ --- */
+.chat-input-row { 
+    padding: 0 20px 20px; 
+    background: #313338; 
+    display: flex; 
+    gap: 12px; 
+    align-items: center;
+}
+
+#chatInput { 
+    flex: 1; 
+    background: #383a40; 
+    border: none; 
+    padding: 12px 16px; 
+    border-radius: 8px; 
+    color: white; 
+    outline: none; 
+    font-size: 15px;
+    transition: background 0.2s;
+}
+
+#chatInput:focus { background: #404249; }
+
+/* --- МОДАЛЬНЫЕ ОКНА --- */
+.modal { 
+    position: fixed; 
+    inset: 0; 
+    background: rgba(0,0,0,0.85); 
+    z-index: 1000; 
+    display: none; 
+    align-items: center; 
+    justify-content: center; 
+    backdrop-filter: blur(4px);
+    transition: opacity 0.2s;
+}
+
 .modal.active { display: flex; }
 
-.settings-window { background: var(--bg-sidebar); width: 800px; height: 500px; border-radius: 8px; display: flex; overflow: hidden; }
-.settings-left { width: 220px; background: var(--bg-card); padding: 40px 10px 10px 20px; display: flex; flex-direction: column; gap: 4px; }
-.settings-right { flex: 1; padding: 40px; overflow-y: auto; position: relative; }
+.settings-window { 
+    background: var(--bg-sidebar); 
+    width: 800px; 
+    height: 580px; 
+    border-radius: 8px; 
+    display: flex; 
+    overflow: hidden; 
+    box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+    animation: modalScale 0.2s cubic-bezier(0.17, 0.84, 0.44, 1);
+}
 
-.nav-item { padding: 8px 12px; border-radius: 4px; cursor: pointer; color: var(--text-muted); }
-.nav-item.active { background: var(--accent); color: white; }
+@keyframes modalScale {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.settings-left { 
+    width: 220px; 
+    background: var(--bg-card); 
+    padding: 60px 10px 20px 20px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 5px; 
+}
+
+.settings-right { 
+    flex: 1; 
+    padding: 60px 40px 40px; 
+    position: relative; 
+    overflow-y: auto; 
+    background: var(--bg-sidebar); 
+}
+
+.nav-item { 
+    padding: 10px; 
+    border-radius: 4px; 
+    cursor: pointer; 
+    color: var(--text-muted); 
+    font-size: 14px; 
+    font-weight: 500;
+    transition: 0.1s;
+}
+
+.nav-item:hover { background: var(--bg-modifier-hover); color: var(--text); }
+.nav-item.active { background: var(--bg-modifier-active); color: #fff; }
+
 .settings-tab { display: none; }
-.settings-tab.active { display: block; }
+.settings-tab.active { 
+    display: block; 
+    animation: tabSlide 0.2s ease-out;
+}
 
-.btn-primary { background: var(--accent); color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; width: 100%; }
-.btn-close { position: absolute; top: 20px; right: 20px; background: none; border: 1px solid #555; color: #fff; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; }
+@keyframes tabSlide {
+    from { transform: translateX(20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* --- КНОПКИ И ПОЛЯ --- */
+.btn-primary { 
+    background: var(--accent); 
+    color: white; 
+    border: none; 
+    padding: 10px 20px; 
+    border-radius: 4px; 
+    cursor: pointer; 
+    font-size: 14px; 
+    font-weight: 500;
+    transition: background 0.2s, transform 0.1s;
+}
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-primary:active { transform: scale(0.98); }
+
+.btn-danger { 
+    background: var(--danger); 
+    color: white; 
+    border: none; 
+    padding: 10px; 
+    border-radius: 4px; 
+    cursor: pointer;
+    width: 100%;
+}
+
+.btn-close { 
+    position: absolute; 
+    top: 20px; 
+    right: 20px; 
+    background: none; 
+    border: 2px solid #555; 
+    color: #555; 
+    width: 32px; 
+    height: 32px; 
+    border-radius: 50%; 
+    cursor: pointer; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    font-weight: bold;
+    transition: 0.2s;
+}
+.btn-close:hover { border-color: #fff; color: #fff; }
+
+input, textarea { 
+    width: 100%; 
+    background: #1e1f22; 
+    border: 1px solid #111; 
+    padding: 12px; 
+    border-radius: 4px; 
+    color: white; 
+    outline: none; 
+    margin-top: 8px;
+    margin-bottom: 20px;
+}
+input:focus { border-color: var(--accent); }
+
+label { 
+    font-size: 12px; 
+    text-transform: uppercase; 
+    font-weight: bold; 
+    color: var(--text-muted); 
+}
+
+.sidebar-footer { 
+    padding: 15px; 
+    background: rgba(0,0,0,0.1); 
+    border-top: 1px solid var(--border);
+}
