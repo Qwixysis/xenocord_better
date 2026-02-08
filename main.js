@@ -9,63 +9,81 @@ const db = getFirestore();
 let currentChatUid = null;
 let unsubscribeChat = null;
 
-// --- Инициализация интерфейса ---
+// --- Авторизация ---
 onAuthStateChanged(auth, async (user) => {
     if (!user) {
         window.location.href = "index.html";
     } else {
-        document.getElementById("userUid").innerText = user.uid;
+        const uidEl = document.getElementById("userUid");
+        if (uidEl) uidEl.innerText = user.uid;
         
-        // Слушаем данные профиля в реальном времени
+        // Живое обновление профиля
         onSnapshot(doc(db, "users", user.uid), (snap) => {
             const data = snap.data();
             if (data) {
-                document.getElementById("userNick").innerText = data.nick || "Юзер";
+                const nickEl = document.getElementById("userNick");
+                if (nickEl) nickEl.innerText = data.nick || "Юзер";
                 renderFriends(data);
             }
         });
     }
 });
 
-// --- Функции Модальных Окон ---
+// --- Глобальные функции (видны в HTML) ---
 window.openModal = (id) => {
-    const modal = document.getElementById(id);
-    modal.style.display = 'flex';
-    if (id === 'profileModal') {
-        document.getElementById('editNickInput').value = document.getElementById('userNick').innerText;
+    const m = document.getElementById(id);
+    if (m) {
+        m.style.display = 'flex';
+        if (id === 'profileModal') {
+            document.getElementById('editNickInput').value = document.getElementById('userNick').innerText;
+        }
     }
 };
 
 window.closeModal = (id) => {
-    document.getElementById(id).style.display = 'none';
-};
-
-// --- Работа с Профилем ---
-window.saveProfile = async () => {
-    const newNick = document.getElementById('editNickInput').value.trim();
-    if (!newNick) return;
-    await updateDoc(doc(db, "users", auth.currentUser.uid), { nick: newNick });
-    closeModal('profileModal');
+    const m = document.getElementById(id);
+    if (m) m.style.display = 'none';
 };
 
 window.copyUid = () => {
     const uid = document.getElementById('userUid').innerText;
-    navigator.clipboard.writeText(uid);
-    alert("UID скопирован в буфер!");
+    navigator.clipboard.writeText(uid).then(() => alert("UID скопирован!"));
 };
 
 window.logout = () => signOut(auth);
 
-// --- Друзья и Рендер ---
+window.saveProfile = async () => {
+    const newNick = document.getElementById('editNickInput').value.trim();
+    if (!newNick) return;
+    try {
+        await updateDoc(doc(db, "users", auth.currentUser.uid), { nick: newNick });
+        window.closeModal('profileModal');
+    } catch (e) { console.error(e); }
+};
+
+window.sendFriendRequest = async () => {
+    const input = document.getElementById("friendUidInput");
+    const fUid = input.value.trim();
+    if (!fUid || fUid === auth.currentUser.uid) return alert("Неверный UID");
+    try {
+        await updateDoc(doc(db, "users", fUid), { pending: arrayUnion(auth.currentUser.uid) });
+        alert("Запрос отправлен!");
+        input.value = "";
+        window.closeModal('friendModal');
+    } catch (e) { alert("Пользователь не найден"); }
+};
+
+// --- Друзья и Чат ---
 async function renderFriends(data) {
     const fList = document.getElementById("friendsList");
     const pList = document.getElementById("pendingList");
-    
+    if (!fList || !pList) return;
+
     fList.innerHTML = "";
     for (const fUid of (data.friends || [])) {
         const fSnap = await getDoc(doc(db, "users", fUid));
         const li = document.createElement("li");
-        li.innerHTML = `<span>${fSnap.data()?.nick}</span>`;
+        li.innerHTML = `<span>${fSnap.data()?.nick || 'Друг'}</span>`;
         li.onclick = () => openChat(fUid, fSnap.data()?.nick);
         fList.appendChild(li);
     }
@@ -74,32 +92,17 @@ async function renderFriends(data) {
     for (const pUid of (data.pending || [])) {
         const pSnap = await getDoc(doc(db, "users", pUid));
         const li = document.createElement("li");
-        li.innerHTML = `<span>${pSnap.data()?.nick}</span> <button class="mini-btn">OK</button>`;
-        li.querySelector('button').onclick = (e) => {
-            e.stopPropagation();
-            acceptFriend(pUid);
-        };
+        li.innerHTML = `<span>${pSnap.data()?.nick}</span> <button class="mini-ok" onclick="event.stopPropagation(); acceptFriend('${pUid}')">OK</button>`;
         pList.appendChild(li);
     }
 }
 
-window.sendFriendRequest = async () => {
-    const fUid = document.getElementById("friendUidInput").value.trim();
-    if (!fUid || fUid === auth.currentUser.uid) return alert("Ошибка UID");
-    try {
-        await updateDoc(doc(db, "users", fUid), { pending: arrayUnion(auth.currentUser.uid) });
-        alert("Запрос отправлен!");
-        closeModal('friendModal');
-    } catch (e) { alert("Пользователь не найден"); }
-};
-
-async function acceptFriend(fUid) {
+window.acceptFriend = async (fUid) => {
     const myUid = auth.currentUser.uid;
     await updateDoc(doc(db, "users", myUid), { friends: arrayUnion(fUid), pending: arrayRemove(fUid) });
     await updateDoc(doc(db, "users", fUid), { friends: arrayUnion(myUid) });
-}
+};
 
-// --- Чат ---
 async function openChat(fUid, nick) {
     currentChatUid = fUid;
     document.getElementById("chatHeader").innerText = "Чат: " + nick;
