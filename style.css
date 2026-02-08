@@ -30,22 +30,25 @@ li:hover .friend-actions { display: flex; }
 #chatHeader { height: 48px; padding: 0 16px; display: flex; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.2); box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
 #chatBox { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
 
-.msg { padding: 8px 16px; border-radius: 8px; max-width: 80%; position: relative; }
-.msg.my { align-self: flex-end; background: var(--accent); color: white; }
-.msg:not(.my) { align-self: flex-start; background: #383a40; }
+.msg { padding: 8px 16px; border-radius: 8px; max-width: 80%; position: relative; margin-bottom: 2px; }
+.msg.my { align-self: flex-end; background: var(--accent); color: white; border-bottom-right-radius: 2px; }
+.msg:not(.my) { align-self: flex-start; background: #383a40; border-bottom-left-radius: 2px; }
 .msg-footer { font-size: 10px; opacity: 0.6; margin-top: 4px; text-align: right; }
+.msg-actions { position: absolute; top: -10px; right: 5px; display: none; }
+.msg:hover .msg-actions { display: block; }
+.msg-actions button { background: #000; color: #fff; border: none; padding: 2px 6px; border-radius: 4px; cursor: pointer; font-size: 10px; }
 
-/* КРУТАЯ МОДАЛКА НАСТРОЕК */
+/* НАСТРОЙКИ (ДИЗАЙН СЛЕВА) */
 .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
 .modal.active { display: flex; }
-.settings-window { background: var(--bg-sidebar); width: 800px; height: 500px; border-radius: 8px; display: flex; overflow: hidden; animation: modalIn 0.2s ease; }
+.settings-window { background: var(--bg-sidebar); width: 800px; height: 500px; border-radius: 8px; display: flex; overflow: hidden; animation: modalIn 0.2s ease; position: relative; }
 
 .settings-left { width: 220px; background: var(--bg-card); padding: 40px 10px 10px 20px; display: flex; flex-direction: column; gap: 4px; }
 .settings-right { flex: 1; padding: 40px 40px; overflow-y: auto; background: var(--bg-sidebar); position: relative; }
 
-.nav-item { padding: 6px 10px; border-radius: 4px; cursor: pointer; color: var(--text-muted); font-size: 14px; }
+.nav-item { padding: 8px 12px; border-radius: 4px; cursor: pointer; color: var(--text-muted); font-size: 14px; font-weight: 500; }
 .nav-item:hover { background: rgba(255,255,255,0.05); color: var(--text); }
-.nav-item.active { background: rgba(255,255,255,0.1); color: white; }
+.nav-item.active { background: var(--accent); color: white; }
 
 .settings-tab { display: none; animation: fadeIn 0.2s ease; }
 .settings-tab.active { display: block; }
@@ -53,15 +56,24 @@ li:hover .friend-actions { display: flex; }
 /* ФОРМЫ */
 .field { margin-bottom: 20px; }
 .field label { display: block; color: var(--text-muted); font-size: 12px; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; }
-input, textarea { width: 100%; background: #1e1f22; border: none; padding: 10px; border-radius: 3px; color: var(--text); outline: none; }
+input, textarea { width: 100%; background: #1e1f22; border: 1px solid #111; padding: 12px; border-radius: 4px; color: var(--text); outline: none; transition: 0.2s; }
+input:focus { border-color: var(--accent); }
 textarea { resize: none; }
 
 button { border: none; border-radius: 3px; padding: 10px 24px; cursor: pointer; font-size: 14px; font-weight: 500; transition: 0.2s; }
-.btn-primary { background: var(--accent); color: white; }
+.btn-primary { background: var(--accent); color: white; width: 100%; }
 .btn-primary:hover { background: var(--accent-hover); }
-.btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+.btn-danger { background: transparent; color: var(--danger); border: 1px solid var(--danger); width: 100%; margin-top: 20px; }
 .btn-danger:hover { background: var(--danger); color: white; }
-.btn-close { position: absolute; top: 20px; right: 20px; background: none; color: var(--text-muted); border: 2px solid var(--text-muted); border-radius: 50%; width: 32px; height: 32px; padding: 0; }
+.btn-secondary { background: #4e5058; color: white; width: 100%; margin-top: 10px; }
 
-@keyframes modalIn { from { transform: scale(1.1); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.btn-close { position: absolute; top: 20px; right: 20px; background: none; color: var(--text-muted); border: 2px solid var(--text-muted); border-radius: 50%; width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+.btn-close:hover { color: white; border-color: white; }
+
+.avatar-preview { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 15px; background: #111; border: 2px solid var(--accent); }
+
+@keyframes modalIn { from { transform: scale(1.05); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.chat-input-row { padding: 20px; display: flex; gap: 12px; background: #313338; }
+#chatInput { flex: 1; background: #383a40; border: none; padding: 12px; border-radius: 8px; color: white; }
