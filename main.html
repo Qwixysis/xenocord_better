@@ -52,6 +52,7 @@
       <div id="profilePhoto" style="width:100px;height:100px;border-radius:50%;background:#444;display:flex;align-items:center;justify-content:center;color:#eee;font-size:32px;">?</div>
       <p><b>Email:</b> <span id="profileEmail"></span></p>
       <p><b>Ник:</b> <span id="profileNick"></span></p>
+      <p><b>UID:</b> <span id="profileUid"></span></p>
       <h3>Редактировать</h3>
       <input id="newNick" type="text" placeholder="Новый ник">
       <input id="newPhoto" type="text" placeholder="URL аватарки">
@@ -67,6 +68,7 @@
       <div id="friendProfilePhoto" style="width:100px;height:100px;border-radius:50%;background:#444;display:flex;align-items:center;justify-content:center;color:#eee;font-size:32px;">?</div>
       <p><b>Email:</b> <span id="friendProfileEmail"></span></p>
       <p><b>Ник:</b> <span id="friendProfileNick"></span></p>
+      <p><b>UID:</b> <span id="friendProfileUid"></span></p>
     </div>
   </div>
 
@@ -78,6 +80,11 @@
       <button onclick="setTheme('dark')">Тёмная тема</button>
       <button onclick="setTheme('light')">Светлая тема</button>
     </div>
+  </div>
+
+  <!-- UID внизу слева -->
+  <div id="userUidDisplay" style="position:fixed; bottom:10px; left:10px; font-size:12px; color:#aaa;">
+    UID: <span id="userUid"></span>
   </div>
 
   <!-- Стили -->
