@@ -17,6 +17,7 @@ onAuthStateChanged(auth, async user => {
     document.getElementById("welcome").textContent = 
       `Привет, ${user.displayName || user.email}!`;
 
+    // UID внизу слева
     const uidEl = document.getElementById("userUid");
     if (uidEl) uidEl.textContent = user.uid;
 
