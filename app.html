@@ -4,14 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Xenocord</title>
-    <link rel="stylesheet" href="style.css?v=3.0">
+    <link rel="stylesheet" href="style.css?v=5.0">
 </head>
-    <link rel="stylesheet" href="style.css?v=999">
 <body>
     <div class="app-container">
-        <aside class="sidebar">
+        <aside class="sidebar" id="sidebar">
             <div class="user-card">
-                <h3 id="userNick">Загрузка...</h3>
+                <div class="user-info-box">
+                    <span class="status-dot"></span>
+                    <h3 id="userNick">Загрузка...</h3>
+                </div>
                 <button id="profileBtn" class="icon-btn">⚙️</button>
             </div>
             
@@ -24,7 +26,7 @@
 
             <div class="sidebar-footer">
                 <button id="addFriendBtn">Добавить друга</button>
-                <button id="logoutBtn" class="danger">Выйти</button>
+                <button id="logoutBtn" class="danger">Выход</button>
                 <div class="uid-section" id="copyUidBox">
                     <small>Твой UID (кликни)</small>
                     <code id="userUid">...</code>
@@ -33,10 +35,15 @@
         </aside>
 
         <main class="chat-main">
-            <header id="chatHeader">Выберите чат в списке слева</header>
+            <header id="chatHeader">
+                <button class="mobile-menu-btn" id="menuToggle">☰</button>
+                <span id="chatTitle">Выберите чат</span>
+            </header>
+            
             <div id="chatBox"></div>
+            
             <div class="chat-input-row">
-                <input type="text" id="chatInput" placeholder="Введите сообщение...">
+                <input type="text" id="chatInput" placeholder="Напишите сообщение...">
                 <button id="sendMsgBtn">GO</button>
             </div>
         </main>
@@ -67,4 +74,3 @@
     <script type="module" src="main.js"></script>
 </body>
 </html>
-
