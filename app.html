@@ -1,58 +1,74 @@
-<div class="app-container">
-    <aside class="sidebar">
-        <div class="user-card">
-            <h3 id="userNick">Загрузка...</h3>
-            <button onclick="openEditProfile()" class="edit-btn">⚙ Профиль</button>
-        </div>
-        
-        <div class="sidebar-content">
-            <div class="label">ДРУЗЬЯ</div>
-            <ul id="friendsList"></ul>
-            <div class="label">ЗАПРОСЫ</div>
-            <ul id="pendingList"></ul>
-        </div>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xenocord</title>
+    <link rel="stylesheet" href="style.css?v=1.5">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="user-card">
+                <div class="user-info-top">
+                    <h3 id="userNick">Загрузка...</h3>
+                    <button onclick="openModal('profileModal')" class="icon-btn">⚙️</button>
+                </div>
+            </div>
+            
+            <div class="sidebar-content">
+                <div class="label">ДРУЗЬЯ</div>
+                <ul id="friendsList"></ul>
+                <div class="label">ЗАПРОСЫ</div>
+                <ul id="pendingList"></ul>
+            </div>
 
-        <div class="sidebar-footer">
-            <button onclick="openFriendModal()" id="addFriendBtn">+ Добавить друга</button>
-            <button onclick="logout()" id="logoutBtn">Выйти</button>
-            <div class="uid-box">
-                <small>Ваш UID:</small>
-                <code id="userUid" onclick="copyUid()" title="Нажми, чтобы скопировать">...</code>
+            <div class="sidebar-footer">
+                <button id="addFriendBtn" onclick="openModal('friendModal')">+ Добавить друга</button>
+                <button id="logoutBtn" class="danger">Выход</button>
+                
+                <div class="uid-section" onclick="copyUid()" title="Нажми, чтобы скопировать">
+                    <small>Твой UID</small>
+                    <code id="userUid">...</code>
+                </div>
+            </div>
+        </aside>
+
+        <main class="chat-main">
+            <header id="chatHeader">Выберите чат</header>
+            <div id="chatBox"></div>
+            <div class="chat-input-row">
+                <input type="text" id="chatInput" placeholder="Напишите сообщение...">
+                <button id="sendMsgBtn">GO</button>
+            </div>
+        </main>
+    </div>
+
+    <div id="friendModal" class="modal">
+        <div class="modal-content">
+            <h3>Добавить друга</h3>
+            <input type="text" id="friendUidInput" placeholder="Введите UID друга">
+            <div class="modal-btns">
+                <button id="confirmSendRequest">Отправить</button>
+                <button class="secondary" onclick="closeModal('friendModal')">Отмена</button>
             </div>
         </div>
-    </aside>
+    </div>
 
-    <main class="chat-main">
-        <header id="chatHeader">Выберите чат</header>
-        <div id="chatBox"></div>
-        <div class="chat-input-row">
-            <input type="text" id="chatInput" placeholder="Написать сообщение...">
-            <button id="sendMsgBtn" onclick="sendMessage()">GO</button>
-        </div>
-    </main>
-</div>
-
-<div id="friendModal" class="modal">
-    <div class="modal-content">
-        <h3>Добавить друга</h3>
-        <input type="text" id="friendUidInput" placeholder="Введите UID">
-        <div class="modal-btns">
-            <button onclick="sendFriendRequest()">Отправить</button>
-            <button class="close-btn" onclick="closeModal('friendModal')">Закрыть</button>
+    <div id="profileModal" class="modal">
+        <div class="modal-content">
+            <h3>Настройки профиля</h3>
+            <div class="input-group">
+                <label>Ваш никнейм</label>
+                <input type="text" id="editNickInput">
+            </div>
+            <div class="modal-btns">
+                <button onclick="saveProfile()">Сохранить</button>
+                <button class="secondary" onclick="closeModal('profileModal')">Закрыть</button>
+            </div>
         </div>
     </div>
-</div>
 
-<div id="profileModal" class="modal">
-    <div class="modal-content profile-card">
-        <h3>Ваш профиль</h3>
-        <div class="profile-info">
-            <label>Никнейм:</label>
-            <input type="text" id="editNickInput">
-        </div>
-        <div class="modal-btns">
-            <button onclick="saveProfile()">Сохранить</button>
-            <button class="close-btn" onclick="closeModal('profileModal')">Отмена</button>
-        </div>
-    </div>
-</div>
+    <script type="module" src="main.js"></script>
+</body>
+</html>
