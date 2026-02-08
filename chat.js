@@ -1,33 +1,46 @@
-import { auth, db } from "./firebase.js";
-import { addDoc, collection, query, orderBy, onSnapshot, serverTimestamp } from "firebase/firestore";
+import { auth } from "./firebase.js";
+import { getFirestore, collection, addDoc, serverTimestamp, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-// Отправка сообщений
-window.sendMessage = function() {
-  const text = document.getElementById("msgText").value;
-  if (!auth.currentUser) return alert("Сначала войди!");
-  addDoc(collection(db, "messages"), {
-    text,
-    sender: auth.currentUser.email,
+const db = getFirestore();
+let currentChatUid = null;
+let unsubscribeChat = null;
+
+// --- Открыть чат ---
+export function openChatWithFriend(friendUid) {
+  currentChatUid = friendUid;
+  if (unsubscribeChat) unsubscribeChat();
+  subscribeToChat(friendUid);
+}
+
+// --- Отправить сообщение ---
+export async function sendMessageToFriend(friendUid, text) {
+  const user = auth.currentUser;
+  const chatId = [user.uid, friendUid].sort().join("_");
+
+  await addDoc(collection(db, "privateMessages", chatId, "messages"), {
+    senderUid: user.uid,
+    senderNick: user.displayName || user.email,
+    text: text,
     timestamp: serverTimestamp()
   });
-};
+}
 
-// Получение сообщений
-const q = query(collection(db, "messages"), orderBy("timestamp"));
-onSnapshot(q, snapshot => {
-  const messagesDiv = document.getElementById("messages");
-  messagesDiv.innerHTML = "";
-  snapshot.forEach(doc => {
-    const msg = doc.data();
-    messagesDiv.innerHTML += `<p><b>${msg.sender}:</b> ${msg.text}</p>`;
-  });
-});
+// --- Подписка на чат ---
+function subscribeToChat(friendUid) {
+  const user = auth.currentUser;
+  const chatId = [user.uid, friendUid].sort().join("_");
 
-// Добавление друзей
-window.addFriend = function() {
-  const email = document.getElementById("friendEmail").value;
-  addDoc(collection(db, "friends"), {
-    user: auth.currentUser.email,
-    friend: email
+  const messagesRef = collection(db, "privateMessages", chatId, "messages");
+  const q = query(messagesRef, orderBy("timestamp"));
+
+  unsubscribeChat = onSnapshot(q, (snapshot) => {
+    const chatBox = document.getElementById("chatBox");
+    chatBox.innerHTML = "";
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      if (data.text) {
+        chatBox.innerHTML += `<p><b>${data.senderNick}:</b> ${data.text}</p>`;
+      }
+    });
   });
-};
+}
