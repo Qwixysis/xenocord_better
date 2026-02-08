@@ -10,19 +10,18 @@
     <div class="app-container">
         <aside class="sidebar">
             <div class="user-card">
-                <h3 id="userNick">...</h3>
-                <button onclick="window.openModal('profileModal')" style="background:transparent; cursor:pointer; font-size:20px;">⚙️</button>
+                <h3 id="userNick" onclick="window.openModal('profileModal')" style="cursor:pointer">...</h3>
+                <span>⚙️</span>
             </div>
             <div class="sidebar-content">
-                <div class="label">ДРУЗЬЯ</div>
+                <div class="label">Друзья</div>
                 <ul id="friendsList"></ul>
-                <div class="label">ЗАПРОСЫ</div>
+                <div class="label">Заявки</div>
                 <ul id="pendingList"></ul>
             </div>
             <div class="sidebar-footer">
-                <button class="primary" onclick="window.openModal('friendModal')">+ Добавить друга</button>
+                <button class="primary" onclick="window.openModal('friendModal')">Добавить друга</button>
                 <div class="uid-section" id="copyUidBox">
-                    <small>Твой UID (кликни)</small>
                     <code id="userUid">...</code>
                 </div>
                 <button id="logoutBtn" class="danger">Выход</button>
@@ -30,14 +29,14 @@
         </aside>
 
         <main class="chat-main">
-            <header id="chatHeader">
+            <header id="chatHeader" title="Нажми, чтобы увидеть профиль">
                 <span id="chatTitle" style="font-weight: 800;">Выберите чат</span>
                 <div id="typingIndicator"></div>
             </header>
             <div id="chatBox"></div>
             <div class="chat-input-row">
-                <input type="text" id="chatInput" placeholder="Сообщение..." autocomplete="off">
-                <button id="sendMsgBtn" class="primary" style="width:auto; padding:0 20px;">GO</button>
+                <input type="text" id="chatInput" placeholder="Введите сообщение..." autocomplete="off">
+                <button id="sendMsgBtn" class="primary">GO</button>
             </div>
         </main>
     </div>
@@ -45,18 +44,25 @@
     <div id="friendModal" class="modal">
         <div class="modal-content">
             <h3>Добавить друга</h3>
-            <input type="text" id="friendUidInput" placeholder="UID пользователя">
-            <button id="confirmSendRequest" class="primary">Отправить запрос</button>
+            <input type="text" id="friendUidInput" placeholder="UID друга">
+            <button id="confirmSendRequest" class="primary" style="width:100%">Отправить</button>
             <button class="secondary" onclick="window.closeModal('friendModal')">Отмена</button>
         </div>
     </div>
 
     <div id="profileModal" class="modal">
         <div class="modal-content">
-            <h3>Профиль</h3>
-            <input type="text" id="editNickInput" placeholder="Новый ник">
-            <button id="saveProfileBtn" class="primary">Сохранить</button>
+            <h3>Мой профиль</h3>
+            <input type="text" id="editNickInput" placeholder="Сменить ник">
+            <button id="saveProfileBtn" class="primary" style="width:100%">Сохранить</button>
             <button class="secondary" onclick="window.closeModal('profileModal')">Закрыть</button>
+        </div>
+    </div>
+
+    <div id="viewProfileModal" class="modal">
+        <div class="modal-content">
+            <div id="profileInfo"></div>
+            <button class="secondary" onclick="window.closeModal('viewProfileModal')">Закрыть</button>
         </div>
     </div>
 
