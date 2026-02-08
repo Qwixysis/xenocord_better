@@ -10,7 +10,7 @@ let currentChatUid = null;
 let unsubscribeChat = null;
 let unsubscribeTyping = null;
 let typingTimeout = null;
-let renderedMsgIds = new Set();
+let shownMsgIds = new Set();
 
 onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = "index.html"; return; }
@@ -24,65 +24,133 @@ onAuthStateChanged(auth, async (user) => {
     });
 });
 
-// --- Функции Чат-Механик ---
+// --- СИСТЕМА УДАЛЕНИЯ И ПЕЧАТАНИЯ ---
 
-async function setTypingStatus(isTyping) {
+async function updateTyping(isTyping) {
     if (!currentChatUid) return;
     const chatId = [auth.currentUser.uid, currentChatUid].sort().join("_");
-    const typingRef = doc(db, "typing", chatId);
-    await setDoc(typingRef, { [auth.currentUser.uid]: isTyping }, { merge: true });
+    await setDoc(doc(db, "typing", chatId), { [auth.currentUser.uid]: isTyping }, { merge: true });
 }
 
-async function sendMessage() {
-    const input = document.getElementById("chatInput");
-    const text = input.value.trim();
-    if (!text || !currentChatUid) return;
-
-    const chatId = [auth.currentUser.uid, currentChatUid].sort().join("_");
-    await addDoc(collection(db, "privateMessages", chatId, "messages"), {
-        senderUid: auth.currentUser.uid,
-        text: text,
-        timestamp: serverTimestamp()
-    });
-    
-    input.value = "";
-    setTypingStatus(false);
-}
-
-async function deleteMessage(msgId) {
-    if (!confirm("Удалить сообщение?")) return;
+async function deleteMsg(msgId) {
+    if (!confirm("Удалить это сообщение у всех?")) return;
     const chatId = [auth.currentUser.uid, currentChatUid].sort().join("_");
     await deleteDoc(doc(db, "privateMessages", chatId, "messages", msgId));
 }
 
-// --- Интерфейс ---
+async function removeFriend(fUid) {
+    if (!confirm("Удалить друга из списка?")) return;
+    const myUid = auth.currentUser.uid;
+    await updateDoc(doc(db, "users", myUid), { friends: arrayRemove(fUid) });
+    await updateDoc(doc(db, "users", fUid), { friends: arrayRemove(myUid) });
+}
+
+// --- ЛОГИКА ЧАТА ---
+
+async function openChat(fUid, nick) {
+    if (currentChatUid === fUid) return;
+    currentChatUid = fUid;
+    shownMsgIds.clear();
+    document.getElementById("chatBox").innerHTML = "";
+    document.getElementById("chatTitle").innerText = nick;
+
+    const chatId = [auth.currentUser.uid, fUid].sort().join("_");
+
+    // Слушаем сообщения
+    if (unsubscribeChat) unsubscribeChat();
+    const q = query(collection(db, "privateMessages", chatId, "messages"), orderBy("timestamp"));
+    unsubscribeChat = onSnapshot(q, (snap) => {
+        const box = document.getElementById("chatBox");
+        
+        // Синхронизация удаления из DOM
+        const dbIds = snap.docs.map(d => d.id);
+        Array.from(box.children).forEach(el => {
+            if (!dbIds.includes(el.id)) el.remove();
+        });
+
+        snap.docChanges().forEach(change => {
+            if (change.type === "added") {
+                const d = change.doc;
+                if (!shownMsgIds.has(d.id)) {
+                    const isMe = d.data().senderUid === auth.currentUser.uid;
+                    const div = document.createElement("div");
+                    div.id = d.id;
+                    div.className = `msg ${isMe ? 'my' : ''} new-msg`;
+                    div.innerHTML = `${d.data().text}${isMe ? `<button class="del-msg-btn">✕</button>` : ''}`;
+                    if (isMe) div.querySelector('.del-msg-btn').onclick = () => deleteMsg(d.id);
+                    box.appendChild(div);
+                    shownMsgIds.add(d.id);
+                }
+            }
+        });
+        box.scrollTop = box.scrollHeight;
+    });
+
+    // Слушаем "печатает..."
+    if (unsubscribeTyping) unsubscribeTyping();
+    unsubscribeTyping = onSnapshot(doc(db, "typing", chatId), (snap) => {
+        const data = snap.data();
+        const indicator = document.getElementById("typingIndicator");
+        indicator.innerText = (data && data[fUid]) ? `${nick} печатает...` : "";
+    });
+}
+
+// --- УПРАВЛЕНИЕ UI ---
 
 document.addEventListener('DOMContentLoaded', () => {
-    const chatInput = document.getElementById('chatInput');
-
-    chatInput?.addEventListener('input', () => {
-        setTypingStatus(true);
+    const input = document.getElementById('chatInput');
+    
+    input?.addEventListener('input', () => {
+        updateTyping(true);
         clearTimeout(typingTimeout);
-        typingTimeout = setTimeout(() => setTypingStatus(false), 2000);
+        typingTimeout = setTimeout(() => updateTyping(false), 2000);
     });
 
-    chatInput?.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    input?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
     });
 
-    document.getElementById('sendMsgBtn')?.onclick = sendMessage;
+    document.getElementById('sendMsgBtn').onclick = sendMsg;
+    document.getElementById('addFriendBtn').onclick = () => document.getElementById('friendModal').classList.add('active');
+    document.getElementById('profileBtn').onclick = () => document.getElementById('profileModal').classList.add('active');
     
-    // Модалки
-    const toggleM = (id, act) => document.getElementById(id).classList[act ? 'add' : 'remove']('active');
-    document.getElementById('addFriendBtn').onclick = () => toggleM('friendModal', true);
-    document.querySelectorAll('.secondary').forEach(b => b.onclick = () => { toggleM('friendModal', false); toggleM('profileModal', false); });
+    document.querySelectorAll('.secondary').forEach(b => b.onclick = () => {
+        document.querySelectorAll('.modal').forEach(m => m.classList.remove('active'));
+    });
+
+    document.getElementById('confirmSendRequest').onclick = async () => {
+        const uid = document.getElementById('friendUidInput').value.trim();
+        if (uid) {
+            await updateDoc(doc(db, "users", uid), { pending: arrayUnion(auth.currentUser.uid) });
+            alert("Запрос отправлен!");
+            document.getElementById('friendModal').classList.remove('active');
+        }
+    };
+
+    document.getElementById('copyUidBox').onclick = () => {
+        navigator.clipboard.writeText(document.getElementById('userUid').innerText);
+        alert("UID скопирован!");
+    };
     
-    document.getElementById('confirmSendRequest').onclick = sendFriendRequest;
+    document.getElementById('logoutBtn').onclick = () => signOut(auth);
 });
 
+async function sendMsg() {
+    const input = document.getElementById('chatInput');
+    if (!input.value.trim() || !currentChatUid) return;
+    const chatId = [auth.currentUser.uid, currentChatUid].sort().join("_");
+    await addDoc(collection(db, "privateMessages", chatId, "messages"), {
+        senderUid: auth.currentUser.uid,
+        text: input.value,
+        timestamp: serverTimestamp()
+    });
+    input.value = "";
+    updateTyping(false);
+}
+
 async function renderFriends(data) {
-    const fList = document.getElementById("friendsList");
-    fList.innerHTML = "";
+    const list = document.getElementById("friendsList");
+    list.innerHTML = "";
     for (const fUid of (data.friends || [])) {
         const fSnap = await getDoc(doc(db, "users", fUid));
         const li = document.createElement("li");
@@ -90,76 +158,8 @@ async function renderFriends(data) {
         li.onclick = () => openChat(fUid, fSnap.data()?.nick);
         li.querySelector('.del-friend-btn').onclick = (e) => {
             e.stopPropagation();
-            if(confirm("Удалить друга?")) removeFriend(fUid);
+            removeFriend(fUid);
         };
-        fList.appendChild(li);
+        list.appendChild(li);
     }
-}
-
-async function removeFriend(fUid) {
-    const myUid = auth.currentUser.uid;
-    await updateDoc(doc(db, "users", myUid), { friends: arrayRemove(fUid) });
-    await updateDoc(doc(db, "users", fUid), { friends: arrayRemove(myUid) });
-}
-
-async function openChat(fUid, nick) {
-    if (currentChatUid === fUid) return;
-    currentChatUid = fUid;
-    renderedMsgIds.clear();
-    document.getElementById("chatBox").innerHTML = "";
-    document.getElementById("chatTitle").innerText = nick;
-
-    const chatId = [auth.currentUser.uid, fUid].sort().join("_");
-
-    // Слушатель сообщений
-    if (unsubscribeChat) unsubscribeChat();
-    const q = query(collection(db, "privateMessages", chatId, "messages"), orderBy("timestamp"));
-    unsubscribeChat = onSnapshot(q, (snap) => {
-        const box = document.getElementById("chatBox");
-        
-        // Обработка удаления (удаляем из DOM если документ исчез в базе)
-        const currentDocIds = snap.docs.map(d => d.id);
-        Array.from(box.children).forEach(child => {
-            if (!currentDocIds.includes(child.dataset.id)) child.remove();
-        });
-
-        snap.docChanges().forEach(change => {
-            if (change.type === "added") {
-                const d = change.doc;
-                if (!renderedMsgIds.has(d.id)) {
-                    const isMe = d.data().senderUid === auth.currentUser.uid;
-                    const div = document.createElement("div");
-                    div.className = `msg ${isMe ? 'my' : ''} new-msg`;
-                    div.dataset.id = d.id;
-                    div.innerHTML = `${d.data().text}${isMe ? `<button class="del-msg-btn">✕</button>` : ''}`;
-                    if (isMe) div.querySelector('.del-msg-btn').onclick = () => deleteMessage(d.id);
-                    box.appendChild(div);
-                    renderedMsgIds.add(d.id);
-                }
-            }
-        });
-        box.scrollTop = box.scrollHeight;
-    });
-
-    // Слушатель печатания
-    if (unsubscribeTyping) unsubscribeTyping();
-    unsubscribeTyping = onSnapshot(doc(db, "typing", chatId), (snap) => {
-        const typingData = snap.data();
-        const indicator = document.getElementById("typingIndicator");
-        if (typingData && typingData[fUid]) {
-            indicator.innerText = `${nick} печатает...`;
-        } else {
-            indicator.innerText = "";
-        }
-    });
-}
-
-async function sendFriendRequest() {
-    const val = document.getElementById("friendUidInput").value.trim();
-    if (!val) return;
-    try {
-        await updateDoc(doc(db, "users", val), { pending: arrayUnion(auth.currentUser.uid) });
-        alert("Запрос отправлен!");
-        document.getElementById('friendModal').classList.remove('active');
-    } catch { alert("Ошибка!"); }
 }
