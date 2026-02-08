@@ -9,6 +9,7 @@
     --danger: #da373c;
 }
 
+/* АНИМАЦИИ */
 @keyframes messageIn {
     0% { opacity: 0; transform: translateY(20px) scale(0.9); }
     100% { opacity: 1; transform: translateY(0) scale(1); }
@@ -28,8 +29,26 @@ body { background: var(--bg-dark); color: var(--text); height: 100vh; overflow: 
 .sidebar-content { flex: 1; padding: 10px; overflow-y: auto; }
 .label { font-size: 11px; font-weight: 800; color: var(--text-muted); margin: 15px 8px 5px; text-transform: uppercase; }
 
-li { padding: 10px; margin: 4px 0; border-radius: 8px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+/* СПИСОК ДРУЗЕЙ */
+li { 
+    padding: 10px; margin: 4px 0; border-radius: 8px; cursor: pointer; 
+    display: flex; justify-content: space-between; align-items: center; 
+    transition: 0.2s; position: relative;
+}
 li:hover { background: rgba(255,255,255,0.05); }
+
+.delete-friend-btn {
+    background: none !important;
+    border: none;
+    color: var(--text-muted);
+    font-size: 18px;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.2s, color 0.2s;
+    padding: 0 5px;
+}
+li:hover .delete-friend-btn { opacity: 1; }
+.delete-friend-btn:hover { color: var(--danger) !important; }
 
 .sidebar-footer { padding: 15px; background: #232428; display: flex; flex-direction: column; gap: 8px; }
 .uid-section { background: var(--bg-dark); padding: 10px; border-radius: 12px; border: 1px dashed #4e5058; text-align: center; cursor: pointer; font-size: 11px; }
