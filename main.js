@@ -10,19 +10,15 @@ let currentChatUid = null;
 let unsubscribeChat = null;
 let unsubscribeTyping = null;
 let typingTimeout = null;
-let shownMsgIds = new Set();
 let msgCount = 0;
 let lastReset = Date.now();
 
-// ГЛОБАЛЬНЫЕ ФУНКЦИИ
-window.openModal = function(id) {
-    document.getElementById(id).classList.add('active');
-};
-window.closeModal = function(id) {
-    document.getElementById(id).classList.remove('active');
-};
+// ОКНА
+window.openModal = (id) => document.getElementById(id).classList.add('active');
+window.closeModal = (id) => document.getElementById(id).classList.remove('active');
 
-window.viewProfile = async function(uid) {
+// ПРОФИЛЬ
+window.viewProfile = async (uid) => {
     const snap = await getDoc(doc(db, "users", uid));
     if (snap.exists()) {
         const d = snap.data();
@@ -58,19 +54,16 @@ async function updateTyping(status) {
     await setDoc(doc(db, "typing", chatId), { [auth.currentUser.uid]: status }, { merge: true });
 }
 
-window.editMsg = async function(id, oldText) {
+window.editMsg = async (id, oldText) => {
     const txt = prompt("Редактировать сообщение:", oldText);
     if (txt !== null && txt.trim() !== "" && txt !== oldText) {
         const chatId = [auth.currentUser.uid, currentChatUid].sort().join("_");
-        await updateDoc(doc(db, "privateMessages", chatId, "messages", id), { 
-            text: txt, 
-            edited: true 
-        });
+        await updateDoc(doc(db, "privateMessages", chatId, "messages", id), { text: txt });
     }
 };
 
-window.deleteMsg = async function(id) {
-    if (confirm("Удалить сообщение навсегда?")) {
+window.deleteMsg = async (id) => {
+    if (confirm("Удалить?")) {
         const chatId = [auth.currentUser.uid, currentChatUid].sort().join("_");
         await deleteDoc(doc(db, "privateMessages", chatId, "messages", id));
     }
@@ -82,14 +75,13 @@ async function sendMsg() {
     if (!val || !currentChatUid) return;
 
     if (Date.now() - lastReset > 3000) { msgCount = 0; lastReset = Date.now(); }
-    if (++msgCount > 5) { alert("Не спамь!"); return; }
+    if (++msgCount > 5) { alert("Слишком быстро! Не спамь."); return; }
 
     const chatId = [auth.currentUser.uid, currentChatUid].sort().join("_");
     await addDoc(collection(db, "privateMessages", chatId, "messages"), {
         senderUid: auth.currentUser.uid,
         text: val,
-        timestamp: serverTimestamp(),
-        edited: false
+        timestamp: serverTimestamp()
     });
     input.value = "";
     updateTyping(false);
@@ -98,7 +90,6 @@ async function sendMsg() {
 async function openChat(fUid, nick) {
     if (currentChatUid === fUid) return;
     currentChatUid = fUid;
-    shownMsgIds.clear();
     const box = document.getElementById("chatBox");
     box.innerHTML = "";
     document.getElementById("chatTitle").innerText = nick;
@@ -116,25 +107,15 @@ async function openChat(fUid, nick) {
             const d = change.doc;
             const data = d.data();
             const isMe = data.senderUid === auth.currentUser.uid;
-            
-            // Получаем время
-            let timeStr = "";
-            if (data.timestamp) {
-                const date = data.timestamp.toDate();
-                timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            }
+            let timeStr = data.timestamp ? data.timestamp.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
 
             if (change.type === "added") {
                 const div = document.createElement("div");
                 div.id = d.id;
                 div.className = `msg ${isMe ? 'my' : ''}`;
-                
-                // Жесткая проверка на edited
-                const editedLabel = data.edited === true ? " (изм.)" : "";
-                
                 div.innerHTML = `
                     <div class="msg-content">${data.text}</div>
-                    <div class="msg-footer">${timeStr}${editedLabel}</div>
+                    <div class="msg-footer">${timeStr}</div>
                     <div class="msg-actions">
                         ${isMe ? `<button onclick="window.editMsg('${d.id}', '${data.text.replace(/'/g, "\\'")}')">✎</button>` : ''}
                         <button onclick="window.deleteMsg('${d.id}')">✕</button>
@@ -147,7 +128,6 @@ async function openChat(fUid, nick) {
                 const el = document.getElementById(d.id);
                 if (el) {
                     el.querySelector(".msg-content").innerText = data.text;
-                    el.querySelector(".msg-footer").innerText = `${timeStr} (изм.)`;
                 }
             }
         });
@@ -168,10 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
         typingTimeout = setTimeout(() => updateTyping(false), 2000);
     });
     input?.addEventListener('keydown', (e) => { 
-        if (e.key === 'Enter' && !e.shiftKey) { 
-            e.preventDefault(); 
-            sendMsg(); 
-        } 
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } 
     });
 
     document.getElementById('sendMsgBtn').onclick = sendMsg;
@@ -185,18 +162,17 @@ document.addEventListener('DOMContentLoaded', () => {
     
     document.getElementById('confirmSendRequest').onclick = async () => {
         const u = document.getElementById('friendUidInput').value.trim();
-        if (u) { 
+        if (u) {
             try {
                 await updateDoc(doc(db, "users", u), { pending: arrayUnion(auth.currentUser.uid) });
-                alert("Запрос отправлен!"); 
-                window.closeModal('friendModal'); 
-            } catch(e) { alert("Ошибка: UID не существует"); }
+                alert("Запрос отправлен!"); window.closeModal('friendModal');
+            } catch(e) { alert("UID не найден"); }
         }
     };
     
-    document.getElementById('copyUidBox').onclick = () => { 
-        navigator.clipboard.writeText(document.getElementById('userUid').innerText); 
-        alert("UID скопирован!"); 
+    document.getElementById('copyUidBox').onclick = () => {
+        navigator.clipboard.writeText(document.getElementById('userUid').innerText);
+        alert("UID скопирован!");
     };
     document.getElementById('logoutBtn').onclick = () => signOut(auth);
 });
@@ -207,12 +183,11 @@ async function renderFriends(data) {
     for (const fUid of (data.friends || [])) {
         const fSnap = await getDoc(doc(db, "users", fUid));
         const li = document.createElement("li");
-        const fData = fSnap.data();
-        li.innerHTML = `<span>${fData?.nick || 'Друг'}</span><button class="danger" style="padding:2px 8px; font-size:10px;">✕</button>`;
-        li.onclick = () => openChat(fUid, fData?.nick);
-        li.querySelector('button').onclick = (e) => { 
-            e.stopPropagation(); 
-            if(confirm("Удалить из друзей?")) updateDoc(doc(db, "users", auth.currentUser.uid), { friends: arrayRemove(fUid) }); 
+        li.innerHTML = `<span>${fSnap.data()?.nick || 'Друг'}</span><button class="danger" style="padding:2px 8px; font-size:10px;">✕</button>`;
+        li.onclick = () => openChat(fUid, fSnap.data()?.nick);
+        li.querySelector('button').onclick = (e) => {
+            e.stopPropagation();
+            if(confirm("Удалить друга?")) updateDoc(doc(db, "users", auth.currentUser.uid), { friends: arrayRemove(fUid) });
         };
         list.appendChild(li);
     }
