@@ -12,11 +12,18 @@ let unsubscribeTyping = null;
 let typingTimeout = null;
 let shownMsgIds = new Set();
 
-// Глобальные функции управления окнами (чтобы работали из HTML)
-window.openModal = (id) => document.getElementById(id).classList.add('active');
-window.closeModal = (id) => document.getElementById(id).classList.remove('active');
+// --- ФИКС МОДАЛОК: Делаем функции глобальными ---
+window.openModal = function(id) {
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.add('active');
+};
 
-// 1. Мониторинг авторизации и данных пользователя
+window.closeModal = function(id) {
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.remove('active');
+};
+
+// 1. Мониторинг пользователя
 onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = "index.html"; return; }
     document.getElementById("userUid").innerText = user.uid;
@@ -31,14 +38,14 @@ onAuthStateChanged(auth, async (user) => {
     });
 });
 
-// 2. Логика набора текста ("печатает...")
+// 2. Статус "печатает"
 async function updateTyping(isTyping) {
     if (!currentChatUid) return;
     const chatId = [auth.currentUser.uid, currentChatUid].sort().join("_");
     await setDoc(doc(db, "typing", chatId), { [auth.currentUser.uid]: isTyping }, { merge: true });
 }
 
-// 3. Работа с сообщениями
+// 3. Сообщения
 async function sendMsg() {
     const input = document.getElementById('chatInput');
     const text = input.value.trim();
@@ -60,7 +67,7 @@ async function deleteMsg(msgId) {
     await deleteDoc(doc(db, "privateMessages", chatId, "messages", msgId));
 }
 
-// 4. Открытие чата
+// 4. Работа с чатом
 async function openChat(fUid, nick) {
     if (currentChatUid === fUid) return;
     currentChatUid = fUid;
@@ -71,12 +78,10 @@ async function openChat(fUid, nick) {
 
     const chatId = [auth.currentUser.uid, fUid].sort().join("_");
 
-    // Подписка на сообщения
     if (unsubscribeChat) unsubscribeChat();
     const q = query(collection(db, "privateMessages", chatId, "messages"), orderBy("timestamp"));
     unsubscribeChat = onSnapshot(q, (snap) => {
         const dbIds = snap.docs.map(d => d.id);
-        // Удаляем из интерфейса, если удалено в базе
         Array.from(box.children).forEach(el => { if (!dbIds.includes(el.id)) el.remove(); });
 
         snap.docChanges().forEach(change => {
@@ -97,7 +102,6 @@ async function openChat(fUid, nick) {
         box.scrollTop = box.scrollHeight;
     });
 
-    // Подписка на статус печатания
     if (unsubscribeTyping) unsubscribeTyping();
     unsubscribeTyping = onSnapshot(doc(db, "typing", chatId), (snap) => {
         const data = snap.data();
@@ -106,7 +110,7 @@ async function openChat(fUid, nick) {
     });
 }
 
-// 5. Друзья и Запросы
+// 5. Рендер списков
 async function renderFriends(data) {
     const list = document.getElementById("friendsList");
     list.innerHTML = "";
@@ -132,7 +136,8 @@ async function renderPending(data) {
     for (const pUid of (data.pending || [])) {
         const pSnap = await getDoc(doc(db, "users", pUid));
         const li = document.createElement("li");
-        li.innerHTML = `<span>${pSnap.data()?.nick}</span><button class="mini-ok">OK</button>`;
+        li.style.background = "rgba(88, 101, 242, 0.1)";
+        li.innerHTML = `<span>${pSnap.data()?.nick}</span><button class="primary" style="padding: 5px 10px; width: auto;">OK</button>`;
         li.querySelector('button').onclick = async () => {
             await updateDoc(doc(db, "users", auth.currentUser.uid), { 
                 friends: arrayUnion(pUid), 
@@ -144,7 +149,7 @@ async function renderPending(data) {
     }
 }
 
-// 6. Слушатели событий интерфейса
+// 6. Инициализация событий
 document.addEventListener('DOMContentLoaded', () => {
     const input = document.getElementById('chatInput');
     
@@ -171,9 +176,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('confirmSendRequest').onclick = async () => {
         const uid = document.getElementById('friendUidInput').value.trim();
         if (uid && uid !== auth.currentUser.uid) {
-            await updateDoc(doc(db, "users", uid), { pending: arrayUnion(auth.currentUser.uid) });
-            alert("Запрос отправлен!");
-            window.closeModal('friendModal');
+            try {
+                await updateDoc(doc(db, "users", uid), { pending: arrayUnion(auth.currentUser.uid) });
+                alert("Запрос отправлен!");
+                window.closeModal('friendModal');
+            } catch (e) { alert("Пользователь не найден"); }
         }
     };
 
