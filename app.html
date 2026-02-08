@@ -1,116 +1,49 @@
-import { auth } from "./firebase.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-import { 
-  getFirestore, doc, getDoc, updateDoc, arrayUnion, arrayRemove,
-  collection, addDoc, serverTimestamp, onSnapshot, query, orderBy
-} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xenocord</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="user-info">
+            <h3 id="userNick">Загрузка...</h3>
+            <code id="userUid" style="font-size: 10px; cursor: pointer;" title="Нажми, чтобы скопировать">UID</code>
+        </div>
+        <div class="friends-section">
+            <div class="section-label">ДРУЗЬЯ</div>
+            <ul id="friendsList"></ul>
+            <div class="section-label">ЗАПРОСЫ</div>
+            <ul id="pendingList"></ul>
+        </div>
+        <div class="sidebar-footer">
+            <button id="addFriendBtn">+ Добавить</button>
+            <button id="logoutBtn" style="background: #444;">Выход</button>
+        </div>
+    </aside>
 
-const db = getFirestore();
-let currentChatUid = null;
-let unsubscribeChat = null;
+    <main class="chat-area">
+        <div id="chatHeader">Выберите чат</div>
+        <div id="chatBox"></div>
+        <div class="input-area">
+            <input type="text" id="chatInput" placeholder="Написать сообщение...">
+            <button id="sendMsgBtn">GO</button>
+        </div>
+    </main>
 
-// --- Инициализация интерфейса ---
-onAuthStateChanged(auth, async user => {
-  if (!user) {
-    window.location.href = "index.html";
-  } else {
-    document.getElementById("userNick").textContent = user.email.split('@')[0];
-    document.getElementById("userUid").textContent = user.uid;
-    loadFriends(user.uid);
-  }
-});
+    <div id="friendModal" class="modal">
+        <div class="modal-content">
+            <h3>Добавить друга</h3>
+            <input type="text" id="friendUidInput" placeholder="UID друга">
+            <div style="display:flex; gap:10px; margin-top:10px;">
+                <button id="confirmSendRequest">Отправить</button>
+                <button onclick="document.getElementById('friendModal').style.display='none'" style="background:#555">Отмена</button>
+            </div>
+        </div>
+    </div>
 
-// --- Обработка кнопок (Event Listeners) ---
-document.getElementById("logoutBtn")?.addEventListener("click", () => {
-  signOut(auth).then(() => window.location.href = "index.html");
-});
-
-document.getElementById("addFriendBtn")?.addEventListener("click", () => {
-  document.getElementById("friendModal").style.display = "block";
-});
-
-document.getElementById("confirmSendRequest")?.addEventListener("click", async () => {
-  const friendUid = document.getElementById("friendUidInput").value.trim();
-  const currentUser = auth.currentUser;
-  
-  if (!friendUid || friendUid === currentUser.uid) return alert("Неверный UID");
-
-  try {
-    const friendRef = doc(db, "users", friendUid);
-    const snap = await getDoc(friendRef);
-    if (!snap.exists()) return alert("Юзер не найден");
-
-    await updateDoc(friendRef, { pending: arrayUnion(currentUser.uid) });
-    alert("Запрос отправлен!");
-    document.getElementById("friendModal").style.display = "none";
-  } catch (e) { alert("Ошибка доступа к базе"); }
-});
-
-document.getElementById("sendMsgBtn")?.addEventListener("click", sendMessage);
-
-// --- Функции чата (делаем доступными для динамических кнопок) ---
-window.openChatWithFriend = function(fUid) {
-  currentChatUid = fUid;
-  const chatId = [auth.currentUser.uid, fUid].sort().join("_");
-  document.getElementById("chatHeader").textContent = `Чат с ID: ${fUid.slice(0,5)}...`;
-
-  if (unsubscribeChat) unsubscribeChat();
-  
-  const q = query(collection(db, "privateMessages", chatId, "messages"), orderBy("timestamp"));
-  unsubscribeChat = onSnapshot(q, (snap) => {
-    const box = document.getElementById("chatBox");
-    box.innerHTML = snap.docs.map(d => `
-      <div class="msg ${d.data().senderUid === auth.currentUser.uid ? 'my-msg' : ''}">
-        <small>${d.data().senderNick}</small>
-        <p>${d.data().text}</p>
-      </div>
-    `).join("");
-    box.scrollTop = box.scrollHeight;
-  });
-};
-
-async function sendMessage() {
-  const input = document.getElementById("chatInput");
-  if (!input.value || !currentChatUid) return;
-
-  const chatId = [auth.currentUser.uid, currentChatUid].sort().join("_");
-  await addDoc(collection(db, "privateMessages", chatId, "messages"), {
-    senderUid: auth.currentUser.uid,
-    senderNick: auth.currentUser.email.split('@')[0],
-    text: input.value,
-    timestamp: serverTimestamp()
-  });
-  input.value = "";
-}
-
-// Позволяем нажимать Enter для отправки
-document.getElementById("chatInput")?.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") sendMessage();
-});
-
-function loadFriends(uid) {
-  onSnapshot(doc(db, "users", uid), async (snap) => {
-    const data = snap.data();
-    if (!data) return;
-
-    const list = document.getElementById("friendsList");
-    list.innerHTML = "";
-    (data.friends || []).forEach(async fUid => {
-      const fSnap = await getDoc(doc(db, "users", fUid));
-      list.innerHTML += `<li>${fSnap.data()?.nick} <button onclick="openChatWithFriend('${fUid}')">Чат</button></li>`;
-    });
-
-    const pList = document.getElementById("pendingList");
-    pList.innerHTML = "";
-    (data.pending || []).forEach(async pUid => {
-      const pSnap = await getDoc(doc(db, "users", pUid));
-      pList.innerHTML += `<li>${pSnap.data()?.nick} <button onclick="acceptRequest('${pUid}')">Принять</button></li>`;
-    });
-  });
-}
-
-window.acceptRequest = async function(fUid) {
-  const myUid = auth.currentUser.uid;
-  await updateDoc(doc(db, "users", myUid), { friends: arrayUnion(fUid), pending: arrayRemove(fUid) });
-  await updateDoc(doc(db, "users", fUid), { friends: arrayUnion(myUid) });
-};
+    <script type="module" src="main.js"></script>
+</body>
+</html>
