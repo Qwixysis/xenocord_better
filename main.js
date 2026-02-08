@@ -11,25 +11,25 @@ let unsubscribeChat = null;
 let unsubscribeTyping = null;
 let typingTimeout = null;
 let shownMsgIds = new Set();
-
-// Антиспам
 let msgCount = 0;
 let lastReset = Date.now();
 
-// ОКНА
+// ГЛОБАЛЬНЫЕ ОКНА
 window.openModal = (id) => document.getElementById(id)?.classList.add('active');
 window.closeModal = (id) => document.getElementById(id)?.classList.remove('active');
 
-// ПРОФИЛЬ
+// ПРОСМОТР ПРОФИЛЯ
 window.viewProfile = async (uid) => {
     const snap = await getDoc(doc(db, "users", uid));
     if (snap.exists()) {
         const d = snap.data();
         document.getElementById("profileInfo").innerHTML = `
             <div style="padding:10px;">
-                <h2 style="color:var(--accent); margin-bottom:5px;">${d.nick || 'Jarvis'}</h2>
-                <p style="font-size:12px; color:var(--text-muted)">ID: ${uid}</p>
-                <div style="margin:20px 0; padding:15px; background:var(--bg-dark); border-radius:10px;">Статус: Пользователь Xenocord</div>
+                <h2 style="color:var(--accent); margin-bottom:10px;">${d.nick || 'Jarvis'}</h2>
+                <div style="padding:15px; background:var(--bg-dark); border-radius:12px; font-size:13px;">
+                    <p>UID: ${uid}</p>
+                    <p style="margin-top:5px; color:var(--text-muted)">Статус: В сети</p>
+                </div>
             </div>
         `;
         window.openModal('viewProfileModal');
@@ -56,15 +56,15 @@ async function updateTyping(status) {
 }
 
 window.editMsg = async (id, oldText) => {
-    const txt = prompt("Редактировать:", oldText);
-    if (txt && txt !== oldText) {
+    const txt = prompt("Редактировать сообщение:", oldText);
+    if (txt !== null && txt.trim() !== "" && txt !== oldText) {
         const chatId = [auth.currentUser.uid, currentChatUid].sort().join("_");
         await updateDoc(doc(db, "privateMessages", chatId, "messages", id), { text: txt, edited: true });
     }
 };
 
 window.deleteMsg = async (id) => {
-    if (confirm("Удалить сообщение?")) {
+    if (confirm("Удалить?")) {
         const chatId = [auth.currentUser.uid, currentChatUid].sort().join("_");
         await deleteDoc(doc(db, "privateMessages", chatId, "messages", id));
     }
@@ -76,7 +76,7 @@ async function sendMsg() {
     if (!val || !currentChatUid) return;
 
     if (Date.now() - lastReset > 3000) { msgCount = 0; lastReset = Date.now(); }
-    if (++msgCount > 5) { alert("Не спамь!"); return; }
+    if (++msgCount > 5) { alert("Слишком много сообщений!"); return; }
 
     const chatId = [auth.currentUser.uid, currentChatUid].sort().join("_");
     await addDoc(collection(db, "privateMessages", chatId, "messages"), {
@@ -110,16 +110,17 @@ async function openChat(fUid, nick) {
             const d = change.doc;
             const data = d.data();
             const isMe = data.senderUid === auth.currentUser.uid;
-            const time = data.timestamp ? data.timestamp.toDate().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : "..:..";
+            const time = data.timestamp ? data.timestamp.toDate().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : "";
 
             if (change.type === "added") {
                 if (!shownMsgIds.has(d.id)) {
                     const div = document.createElement("div");
                     div.id = d.id;
-                    div.className = `msg ${isMe ? 'my' : ''}`;
+                    // Добавляем класс анимации только для новых сообщений
+                    div.className = `msg ${isMe ? 'my' : ''} just-sent`;
                     div.innerHTML = `
                         <div class="msg-content">${data.text}</div>
-                        <div class="msg-footer">${time} ${data.edited ? '(изм.)' : ''}</div>
+                        <div class="msg-footer">${time} ${data.edited === true ? '(изм.)' : ''}</div>
                         <div class="msg-actions">
                             ${isMe ? `<button onclick="window.editMsg('${d.id}', '${data.text.replace(/'/g, "\\'")}')">✎</button>` : ''}
                             <button onclick="window.deleteMsg('${d.id}')">✕</button>
@@ -127,6 +128,8 @@ async function openChat(fUid, nick) {
                     `;
                     box.appendChild(div);
                     shownMsgIds.add(d.id);
+                    // Убираем класс анимации через секунду, чтобы она не срабатывала при ререндере
+                    setTimeout(() => div.classList.remove('just-sent'), 1000);
                 }
             } else if (change.type === "modified") {
                 const el = document.getElementById(d.id);
@@ -162,7 +165,13 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     document.getElementById('confirmSendRequest').onclick = async () => {
         const u = document.getElementById('friendUidInput').value.trim();
-        if (u) { await updateDoc(doc(db, "users", u), { pending: arrayUnion(auth.currentUser.uid) }); alert("Отправлено!"); window.closeModal('friendModal'); }
+        if (u) { 
+            try {
+                await updateDoc(doc(db, "users", u), { pending: arrayUnion(auth.currentUser.uid) });
+                alert("Запрос отправлен!"); 
+                window.closeModal('friendModal'); 
+            } catch(e) { alert("Пользователь не найден"); }
+        }
     };
     document.getElementById('copyUidBox').onclick = () => { navigator.clipboard.writeText(document.getElementById('userUid').innerText); alert("Скопировано!"); };
     document.getElementById('logoutBtn').onclick = () => signOut(auth);
