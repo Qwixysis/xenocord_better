@@ -3,83 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Xenocord | Project Jarvis</title>
+    <title>Xenocord Elite | Jarvis Edition</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <div class="app-container">
+    <div class="app-layout">
         <aside class="sidebar" id="mainSidebar">
-            <div class="user-card">
-                <div id="userAvatarMain" class="avatar-circle">J</div>
-                <div class="name-status">
-                    <div id="userNick" style="font-weight: 700;">Загрузка...</div>
-                    <div style="font-size: 11px; color: #23a559;">В сети</div>
+            <div class="sidebar-header">
+                <div class="user-profile-mini">
+                    <div class="avatar-wrapper" onclick="window.openModal('settingsModal')">
+                        <div id="userAvatarMain" class="avatar-circle">J</div>
+                        <div class="status-indicator online"></div>
+                    </div>
+                    <div class="user-meta">
+                        <span id="userNick" class="nick-name">Загрузка...</span>
+                        <span class="status-label">в сети</span>
+                    </div>
                 </div>
-                <button class="settings-trigger" onclick="window.openModal('settingsModal')">⚙</button>
+                <button class="icon-btn search-trigger">🔍</button>
             </div>
 
-            <div class="sidebar-content">
-                <div class="label">ЛИЧНЫЕ СООБЩЕНИЯ <button onclick="window.openModal('addFriendModal')">+</button></div>
-                <ul id="friendsList" class="nav-list"></ul>
-                <div class="label">ЗАПРОСЫ</div>
-                <ul id="pendingList" class="nav-list"></ul>
+            <div class="sidebar-scroll">
+                <div class="section-header">
+                    <span>ЛИЧНЫЕ СООБЩЕНИЯ</span>
+                    <button class="add-btn" onclick="window.openModal('addFriendModal')" title="Добавить друга">+</button>
+                </div>
+                
+                <ul id="friendsList" class="chat-list">
+                    </ul>
+
+                <div class="section-header" style="margin-top: 20px;">
+                    <span>ЗАПРОСЫ В ДРУЗЬЯ</span>
+                    <span id="pendingCount" class="badge">0</span>
+                </div>
+                <ul id="pendingList" class="request-list"></ul>
             </div>
 
             <div class="sidebar-footer">
-                <div id="userUid" class="uid-box" onclick="window.copyUID()">UID...</div>
+                <div class="uid-container" onclick="window.copyUID()">
+                    <span class="uid-tag">ВАШ UID (НАЖМИ ЧТОБЫ КОПИРОВАТЬ)</span>
+                    <div id="userUid" class="uid-value">Загрузка...</div>
+                </div>
             </div>
         </aside>
 
-        <main class="chat-main">
-            <header id="chatHeader">
-                <button class="mobile-menu-toggle" onclick="window.toggleSidebar()">☰</button>
-                <span class="hash">@</span>
-                <strong id="chatTitle">Выберите чат</strong>
-                <div id="typingStatus"></div>
+        <main class="chat-viewport">
+            <header class="chat-header">
+                <div class="header-left">
+                    <button class="mobile-toggle" onclick="window.toggleSidebar()">☰</button>
+                    <div class="chat-info">
+                        <h2 id="chatTitle">Выберите, кому написать</h2>
+                        <div id="typingStatus" class="typing-text"></div>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="icon-btn" onclick="alert('Звонки скоро!')">📞</button>
+                    <button class="icon-btn" onclick="window.openModal('settingsModal')">⚙️</button>
+                </div>
             </header>
 
-            <div id="chatBox">
-                <div class="welcome">Выберите друга, чтобы начать общение</div>
-            </div>
-
-            <div class="chat-input-row">
-                <div class="input-wrapper">
-                    <input type="text" id="chatInput" placeholder="Написать сообщение..." autocomplete="off">
-                    <button id="sendMsgBtn">GO</button>
+            <div id="chatBox" class="messages-container">
+                <div class="empty-state">
+                    <div class="empty-icon">💬</div>
+                    <h3>Добро пожаловать в Xenocord</h3>
+                    <p>Выберите контакт слева или добавьте нового друга по его UID.</p>
                 </div>
             </div>
+
+            <footer class="chat-footer">
+                <div class="input-panel">
+                    <button class="attach-btn">📎</button>
+                    <div class="textarea-wrapper">
+                        <input type="text" id="chatInput" placeholder="Написать сообщение..." autocomplete="off">
+                    </div>
+                    <button id="sendMsgBtn" class="send-btn">
+                        <svg viewBox="0 0 24 24"><path fill="currentColor" d="M2,21L23,12L2,3V10L17,12L2,14V21Z" /></svg>
+                    </button>
+                </div>
+                <div class="input-tip"><b>Enter</b> для отправки • <b>Shift+Enter</b> перенос</div>
+            </footer>
         </main>
     </div>
 
-    <div id="settingsModal" class="modal">
-        <div class="settings-window">
-            <div class="settings-left">
-                <div class="nav-item active" onclick="window.showTab('tabProfile', this)">Профиль</div>
-                <button id="logoutBtn" class="logout-btn">Выйти</button>
+    <div id="settingsModal" class="modal-overlay">
+        <div class="modal-window wide">
+            <div class="modal-sidebar">
+                <div class="m-nav-item active" onclick="window.showTab('tabGeneral', this)">⚙️ Общие</div>
+                <div class="m-nav-item" onclick="window.showTab('tabAppearance', this)">🎨 Дизайн</div>
+                <div class="m-divider"></div>
+                <button id="logoutBtn" class="m-logout">Выйти из аккаунта</button>
             </div>
-            <div class="settings-right">
-                <button class="btn-close" onclick="window.closeModal('settingsModal')">✕</button>
-                <div id="tabProfile" class="tab-pane active">
+            <div class="modal-body">
+                <button class="close-modal" onclick="window.closeModal('settingsModal')">✕</button>
+                
+                <div id="tabGeneral" class="tab-content active">
                     <h2>Настройки профиля</h2>
-                    <label>Никнейм</label>
-                    <input type="text" id="nickInput">
-                    <label>О себе</label>
-                    <textarea id="bioInput"></textarea>
-                    <label>Аватар (URL)</label>
-                    <input type="text" id="avaInput">
-                    <button class="save-btn" onclick="window.saveProfile()">Сохранить</button>
+                    <div class="input-group">
+                        <label>Никнейм</label>
+                        <input type="text" id="nickInput" placeholder="Как вас называть?">
+                    </div>
+                    <div class="input-group">
+                        <label>Статус (О себе)</label>
+                        <textarea id="bioInput" rows="3" placeholder="Расскажите что-нибудь о себе..."></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label>Ссылка на аватар</label>
+                        <input type="text" id="avaInput" placeholder="https://image.com/photo.png">
+                    </div>
+                    <div class="modal-actions">
+                        <button class="confirm-btn" onclick="window.saveProfile()">Сохранить изменения</button>
+                    </div>
+                </div>
+
+                <div id="tabAppearance" class="tab-content">
+                    <h2>Внешний вид</h2>
+                    <p>Темы оформления в разработке...</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="addFriendModal" class="modal">
-        <div class="mini-modal">
+    <div id="addFriendModal" class="modal-overlay">
+        <div class="modal-window mini">
             <h3>Добавить друга</h3>
-            <input type="text" id="friendUidInput" placeholder="Введите UID">
-            <button onclick="window.sendFriendRequest()">Отправить</button>
-            <button onclick="window.closeModal('addFriendModal')">Отмена</button>
+            <p>Введите уникальный идентификатор (UID) пользователя.</p>
+            <input type="text" id="friendUidInput" class="modern-input" placeholder="Напр: 4Zk9P... ">
+            <div class="modal-footer">
+                <button class="cancel-btn" onclick="window.closeModal('addFriendModal')">Отмена</button>
+                <button class="confirm-btn" onclick="window.sendFriendRequest()">Отправить запрос</button>
+            </div>
         </div>
     </div>
 
