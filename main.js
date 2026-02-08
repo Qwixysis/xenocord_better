@@ -16,28 +16,16 @@ let lastReset = Date.now();
 window.openModal = (id) => document.getElementById(id).classList.add('active');
 window.closeModal = (id) => document.getElementById(id).classList.remove('active');
 
-window.viewProfile = async (uid) => {
-    const snap = await getDoc(doc(db, "users", uid));
-    if (snap.exists()) {
-        const d = snap.data();
-        document.getElementById("profileInfo").innerHTML = `
-            <div style="padding:10px;">
-                <h2 style="color:var(--accent); margin-bottom:10px;">${d.nick || 'Jarvis'}</h2>
-                <div style="padding:15px; background:var(--bg-dark); border-radius:12px; font-size:13px; text-align:left;">
-                    <p><b>UID:</b> ${uid}</p>
-                    <p style="margin-top:5px; color:var(--text-muted)"><b>Статус:</b> В сети</p>
-                </div>
-            </div>`;
-        window.openModal('viewProfileModal');
-    }
-};
-
 onAuthStateChanged(auth, (user) => {
     if (!user) { window.location.href = "index.html"; return; }
     document.getElementById("userUid").innerText = user.uid;
     onSnapshot(doc(db, "users", user.uid), (snap) => {
         const data = snap.data();
-        if (data) { renderFriends(data); renderPending(data); document.getElementById("userNick").innerText = data.nick || "Jarvis"; }
+        if (data) {
+            document.getElementById("userNick").innerText = data.nick || "Jarvis";
+            renderFriends(data);
+            renderPending(data);
+        }
     });
 });
 
@@ -48,7 +36,7 @@ async function updateTyping(status) {
 }
 
 window.editMsg = async (id, oldText) => {
-    const txt = prompt("Редактировать сообщение:", oldText);
+    const txt = prompt("Редактировать:", oldText);
     if (txt !== null && txt.trim() !== "" && txt !== oldText) {
         const chatId = [auth.currentUser.uid, currentChatUid].sort().join("_");
         await updateDoc(doc(db, "privateMessages", chatId, "messages", id), { text: txt });
@@ -56,7 +44,7 @@ window.editMsg = async (id, oldText) => {
 };
 
 window.deleteMsg = async (id) => {
-    if (confirm("Удалить?")) {
+    if (confirm("Удалить сообщение?")) {
         const chatId = [auth.currentUser.uid, currentChatUid].sort().join("_");
         await deleteDoc(doc(db, "privateMessages", chatId, "messages", id));
     }
@@ -89,6 +77,7 @@ async function openChat(fUid, nick) {
 
     if (unsubscribeChat) unsubscribeChat();
     const q = query(collection(db, "privateMessages", chatId, "messages"), orderBy("timestamp"));
+    
     unsubscribeChat = onSnapshot(q, (snap) => {
         const dbIds = snap.docs.map(d => d.id);
         Array.from(box.children).forEach(el => { if (!dbIds.includes(el.id)) el.remove(); });
@@ -115,28 +104,6 @@ async function openChat(fUid, nick) {
         document.getElementById("typingIndicator").innerText = (d && d[fUid]) ? `${nick} печатает...` : "";
     });
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-    const input = document.getElementById('chatInput');
-    input?.addEventListener('input', () => {
-        updateTyping(true); clearTimeout(typingTimeout);
-        typingTimeout = setTimeout(() => updateTyping(false), 2000);
-    });
-    input?.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } });
-    document.getElementById('sendMsgBtn').onclick = sendMsg;
-    document.getElementById('userNick').onclick = () => window.viewProfile(auth.currentUser.uid);
-    document.getElementById('chatTitle').onclick = () => { if(currentChatUid) window.viewProfile(currentChatUid); };
-    document.getElementById('saveProfileBtn').onclick = async () => {
-        const n = document.getElementById('editNickInput').value.trim();
-        if (n) { await updateDoc(doc(db, "users", auth.currentUser.uid), { nick: n }); window.closeModal('profileModal'); }
-    };
-    document.getElementById('confirmSendRequest').onclick = async () => {
-        const u = document.getElementById('friendUidInput').value.trim();
-        if (u) { try { await updateDoc(doc(db, "users", u), { pending: arrayUnion(auth.currentUser.uid) }); alert("Запрос отправлен!"); window.closeModal('friendModal'); } catch(e) { alert("UID не найден"); } }
-    };
-    document.getElementById('copyUidBox').onclick = () => { navigator.clipboard.writeText(document.getElementById('userUid').innerText); alert("UID скопирован!"); };
-    document.getElementById('logoutBtn').onclick = () => signOut(auth);
-});
 
 async function renderFriends(data) {
     const list = document.getElementById("friendsList"); list.innerHTML = "";
@@ -165,3 +132,14 @@ async function renderPending(data) {
         list.appendChild(li);
     }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('sendMsgBtn').onclick = sendMsg;
+    document.getElementById('chatInput')?.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } });
+    document.getElementById('copyUidBox').onclick = () => { navigator.clipboard.writeText(document.getElementById('userUid').innerText); alert("UID скопирован!"); };
+    document.getElementById('logoutBtn').onclick = () => signOut(auth);
+    document.getElementById('confirmSendRequest').onclick = async () => {
+        const u = document.getElementById('friendUidInput').value.trim();
+        if (u) { try { await updateDoc(doc(db, "users", u), { pending: arrayUnion(auth.currentUser.uid) }); alert("Запрос отправлен!"); window.closeModal('friendModal'); } catch(e) { alert("UID не найден"); } }
+    };
+});
